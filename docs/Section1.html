@@ -143,6 +143,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#manual-for-installing-the-bigdm-package" id="toc-manual-for-installing-the-bigdm-package" class="nav-link active" data-scroll-target="#manual-for-installing-the-bigdm-package">Manual for installing the <code>bigDM</code> package</a>
   <ul class="collapse">
   <li><a href="#prerequisites" id="toc-prerequisites" class="nav-link" data-scroll-target="#prerequisites">Prerequisites</a></li>
+  <li><a href="#installation" id="toc-installation" class="nav-link" data-scroll-target="#installation">Installation</a></li>
+  <li><a href="#verifying-the-installation" id="toc-verifying-the-installation" class="nav-link" data-scroll-target="#verifying-the-installation">Verifying the Installation</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -185,16 +187,82 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="prerequisites" class="level3">
 <h3 class="anchored" data-anchor-id="prerequisites">Prerequisites</h3>
 <p>Before installing <code>bigDM</code>, ensure that you have the following prerequisites:</p>
-<ol type="1">
+<ul>
 <li><p><strong>R</strong>: Make sure you have <code>R</code> installed on your system. You can download and install it from <a href="https://cran.r-project.org/">CRAN</a>.</p></li>
 <li><p><strong>RStudio (optional)</strong>: For a better development experience, you might want to use RStudio, which can be downloaded from <a href="https://rstudio.com/">RStudio’s official website</a>.</p></li>
 <li><p><strong>Rtools:</strong> R version 4.0 and newer for Windows requires Rtools to build R packages containing C, C++, or Fortran code from source. <a href="https://cran.r-project.org/bin/windows/Rtools/">Installing Rtools for Windows</a></p></li>
-<li><p><strong>R-INLA package</strong>: Model fitting and inference is fully Bayesian using the well-known INLA technique through the R-INLA package. Visit the <a href="https://cran.r-project.org/bin/windows/Rtools/">R-INLA website</a> for further details about how to install the package on MacOS and for information on version compatibilities.</p>
+<li><p><strong>R-INLA package</strong>: Model fitting and inference is fully Bayesian using the well-known INLA technique through the <code>R-INLA</code> package.</p>
 <p>To install the latest stable version:</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">"INLA"</span>,<span class="at">repos=</span><span class="fu">c</span>(<span class="fu">getOption</span>(<span class="st">"repos"</span>),<span class="at">INLA=</span><span class="st">"https://inla.r-inla-download.org/R/stable"</span>), <span class="at">dep=</span><span class="cn">TRUE</span>) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p><em><strong>IMPORTANT NOTES</strong>:</em></p>
+<ul>
+<li><p><strong>At least the stable version of INLA 22.11.22 (or newer) must be installed for the correct use of the <code>bigDM</code> package.</strong></p></li>
+<li><p>Visit the <a href="https://cran.r-project.org/bin/windows/Rtools/">R-INLA website</a> for further details about how to install the package on MacOS and for information on version compatibilities.</p></li>
+</ul></li>
+</ul>
+</section>
+<section id="installation" class="level3">
+<h3 class="anchored" data-anchor-id="installation">Installation</h3>
+<ol type="1">
+<li><p>Install from CRAN</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">"bigDM"</span>, <span class="at">dependencies=</span><span class="cn">TRUE</span>) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div></li>
+<li><p>Install from GitHub (development version)</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Install devtools package from CRAN repository</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">"devtools"</span>)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Load devtools library</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(devtools)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="co"># In some Linux OS, it might be necessary to first install the following packages</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="fu">c</span>(<span class="st">"cpp11"</span>,<span class="st">"proxy"</span>,<span class="st">"progress"</span>,<span class="st">"tzdb"</span>,<span class="st">"vroom"</span>))</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Install bigDM from GitHub repository</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="fu">install_github</span>(<span class="st">"spatialstatisticsupna/bigDM"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div></li>
 </ol>
+</section>
+<section id="verifying-the-installation" class="level3">
+<h3 class="anchored" data-anchor-id="verifying-the-installation">Verifying the Installation</h3>
+<p>Load the package and check its documentation:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(bigDM)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">packageVersion</span>(<span class="st">"bigDM"</span>)</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="fu">help</span>(<span class="st">"bigDM-package"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Run a test function:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(sf)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tmap)</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(RColorBrewer)</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="do">## 1) Load simulated colorectal cancer mortality data </span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">"Carto_SpainMUN"</span>)</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(Carto_SpainMUN)</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="do">## 2) Divide the spatial domain into provinces</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>carto.list <span class="ot">&lt;-</span> <span class="fu">divide_carto</span>(Carto_SpainMUN, <span class="at">ID.group=</span><span class="st">"region"</span>)</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>carto.NAV <span class="ot">&lt;-</span> carto.list<span class="sc">$</span>Navarra</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(Carto.NAV)</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a><span class="do">## 3) Plot a map with the SMRs</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>paleta <span class="ot">&lt;-</span> <span class="fu">brewer.pal</span>(<span class="dv">8</span>,<span class="st">"RdYlGn"</span>)[<span class="dv">8</span><span class="sc">:</span><span class="dv">1</span>]</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>values <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="sc">-</span><span class="cn">Inf</span>,<span class="fl">0.77</span>,<span class="fl">0.83</span>,<span class="fl">0.91</span>,<span class="dv">1</span>,<span class="fl">1.10</span>,<span class="fl">1.20</span>,<span class="fl">1.30</span>,<span class="cn">Inf</span>)</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a><span class="fu">tmap_mode</span>(<span class="st">"view"</span>)</span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(Carto.NAV) <span class="sc">+</span> </span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_polygons</span>(<span class="at">col=</span><span class="st">"SMR"</span>, <span class="at">id=</span><span class="st">"name"</span>, <span class="at">palette=</span>paleta,</span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>              <span class="at">popup.vars=</span><span class="fu">c</span>(<span class="st">"ID"</span>,<span class="st">"region"</span>,<span class="st">"obs"</span>,<span class="st">"exp"</span>,<span class="st">"SMR"</span>),</span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>              <span class="at">legend.show=</span>T, <span class="at">legend.reverse=</span>T,</span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>              <span class="at">style=</span><span class="st">"fixed"</span>, <span class="at">breaks=</span>values, <span class="at">interval.closure=</span><span class="st">"left"</span>) <span class="sc">+</span> </span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_layout</span>(<span class="at">main.title=</span><span class="st">"Colorectal cancer"</span>, <span class="at">main.title.position=</span><span class="st">"center"</span>,</span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>            <span class="at">legend.outside=</span>T, <span class="at">legend.outside.position=</span><span class="st">"right"</span>, <span class="at">legend.frame=</span>F)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
 
 
 </section>

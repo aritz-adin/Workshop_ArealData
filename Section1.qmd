@@ -20,13 +20,13 @@ The R package [`bigDM`](https://cran.r-project.org/web/packages/bigDM/index.html
 
 Before installing `bigDM`, ensure that you have the following prerequisites:
 
-1.  **R**: Make sure you have `R` installed on your system. You can download and install it from [CRAN](https://cran.r-project.org/).
+-   **R**: Make sure you have `R` installed on your system. You can download and install it from [CRAN](https://cran.r-project.org/).
 
-2.  **RStudio (optional)**: For a better development experience, you might want to use RStudio, which can be downloaded from [RStudio's official website](https://rstudio.com/).
+-   **RStudio (optional)**: For a better development experience, you might want to use RStudio, which can be downloaded from [RStudio's official website](https://rstudio.com/).
 
-3.  **Rtools:** R version 4.0 and newer for Windows requires Rtools to build R packages containing C, C++, or Fortran code from source. [Installing Rtools for Windows](https://cran.r-project.org/bin/windows/Rtools/)
+-   **Rtools:** R version 4.0 and newer for Windows requires Rtools to build R packages containing C, C++, or Fortran code from source. [Installing Rtools for Windows](https://cran.r-project.org/bin/windows/Rtools/)
 
-4.  **R-INLA package**: Model fitting and inference is fully Bayesian using the well-known INLA technique through the R-INLA package.
+-   **R-INLA package**: Model fitting and inference is fully Bayesian using the well-known INLA technique through the `R-INLA` package.
 
     To install the latest stable version:
 
@@ -34,4 +34,72 @@ Before installing `bigDM`, ensure that you have the following prerequisites:
     install.packages("INLA",repos=c(getOption("repos"),INLA="https://inla.r-inla-download.org/R/stable"), dep=TRUE) 
     ```
 
-    *Visit the [R-INLA website](https://cran.r-project.org/bin/windows/Rtools/) for further details about how to install the package on MacOS and for information on version compatibilities.*
+    ***IMPORTANT NOTES**:*
+
+    -   **At least the stable version of INLA 22.11.22 (or newer) must be installed for the correct use of the `bigDM` package.**
+
+    -   Visit the [R-INLA website](https://cran.r-project.org/bin/windows/Rtools/) for further details about how to install the package on MacOS and for information on version compatibilities.
+
+### Installation
+
+1.  Install from CRAN
+
+    ```{r, eval=FALSE}
+    install.packages("bigDM", dependencies=TRUE) 
+    ```
+
+2.  Install from GitHub (development version)
+
+    ```{r, eval=FALSE}
+    # Install devtools package from CRAN repository
+    install.packages("devtools")
+
+    # Load devtools library
+    library(devtools)
+
+    # In some Linux OS, it might be necessary to first install the following packages
+    install.packages(c("cpp11","proxy","progress","tzdb","vroom"))
+
+    # Install bigDM from GitHub repository
+    install_github("spatialstatisticsupna/bigDM")
+    ```
+
+### Verifying the Installation
+
+Load the package and check its documentation:
+
+```{r, eval=FALSE}
+library(bigDM)
+packageVersion("bigDM")
+
+help("bigDM-package")
+```
+
+Run a test function:
+```{r, eval=FALSE}
+library(sf)
+library(tmap)
+library(RColorBrewer)
+
+## 1) Load simulated colorectal cancer mortality data 
+data("Carto_SpainMUN")
+str(Carto_SpainMUN)
+
+## 2) Divide the spatial domain into provinces
+carto.list <- divide_carto(Carto_SpainMUN, ID.group="region")
+carto.NAV <- carto.list$Navarra
+head(Carto.NAV)
+
+## 3) Plot a map with the SMRs
+paleta <- brewer.pal(8,"RdYlGn")[8:1]
+values <- c(-Inf,0.77,0.83,0.91,1,1.10,1.20,1.30,Inf)
+
+tmap_mode("view")
+tm_shape(Carto.NAV) + 
+  tm_polygons(col="SMR", id="name", palette=paleta,
+              popup.vars=c("ID","region","obs","exp","SMR"),
+              legend.show=T, legend.reverse=T,
+              style="fixed", breaks=values, interval.closure="left") + 
+  tm_layout(main.title="Colorectal cancer", main.title.position="center",
+            legend.outside=T, legend.outside.position="right", legend.frame=F)
+```
