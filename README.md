@@ -20,9 +20,9 @@ The Workshop will consist of a
 
 ## Workshop on Areal data
 
-| Bayesian scalable models to analyze high-dimensional areal data using the bigDM library (slides) |
-|--------------------------------------------------------------------------------------------------|
-| Section 1: Installing bigDM package                                                              |
-| Section 2: Spatial models for high-dimensional areal data                                        |
-| Section 3: Spatial-temporal models for high-dimensional areal data                               |
-| Section 4: Multivariate spatial models for high-dimensional areal data                           |
+| Bayesian scalable models to analyze high-dimensional areal data using the bigDM library ([slides](./Workshop_ArealData.pdf)) |
+|------------------------------------------------------------------------------------------------------------------------------|
+| Section 1: Installing bigDM package                                                                                          |
+| Section 2: Spatial models for high-dimensional areal data                                                                    |
+| Section 3: Spatial-temporal models for high-dimensional areal data                                                           |
+| Section 4: Multivariate spatial models for high-dimensional areal data                                                       |
