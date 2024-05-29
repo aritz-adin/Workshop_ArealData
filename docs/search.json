@@ -4,14 +4,14 @@
     "href": "Section1.html",
     "title": "Section 1: Installing the R package bigDM",
     "section": "",
-    "text": "Prueba"
+    "text": "The R package bigDM implements several spatial and spatio-temporal scalable disease mapping models for high-dimensional count data using the integrated nested Laplace approximation (INLA) technique for approximate Bayesian inference in latent Gaussian models (Orozco-Acosta et al., 2021; Orozco-Acosta et al., 2023; and Vicente et al., 2023).\n\n\nBefore installing bigDM, ensure that you have the following prerequisites:\n\nR: Make sure you have R installed on your system. You can download and install it from CRAN.\nRStudio (optional): For a better development experience, you might want to use RStudio, which can be downloaded from RStudio’s official website.\nRtools: R version 4.0 and newer for Windows requires Rtools to build R packages containing C, C++, or Fortran code from source. Installing Rtools for Windows\nR-INLA package: Model fitting and inference is fully Bayesian using the well-known INLA technique through the R-INLA package. Visit the R-INLA website for further details about how to install the package on MacOS and for information on version compatibilities.\nTo install the latest stable version:\n\ninstall.packages(\"INLA\",repos=c(getOption(\"repos\"),INLA=\"https://inla.r-inla-download.org/R/stable\"), dep=TRUE)"
   },
   {
-    "objectID": "Section1.html#prueba",
-    "href": "Section1.html#prueba",
+    "objectID": "Section1.html#manual-for-installing-the-bigdm-package",
+    "href": "Section1.html#manual-for-installing-the-bigdm-package",
     "title": "Section 1: Installing the R package bigDM",
     "section": "",
-    "text": "Prueba"
+    "text": "The R package bigDM implements several spatial and spatio-temporal scalable disease mapping models for high-dimensional count data using the integrated nested Laplace approximation (INLA) technique for approximate Bayesian inference in latent Gaussian models (Orozco-Acosta et al., 2021; Orozco-Acosta et al., 2023; and Vicente et al., 2023).\n\n\nBefore installing bigDM, ensure that you have the following prerequisites:\n\nR: Make sure you have R installed on your system. You can download and install it from CRAN.\nRStudio (optional): For a better development experience, you might want to use RStudio, which can be downloaded from RStudio’s official website.\nRtools: R version 4.0 and newer for Windows requires Rtools to build R packages containing C, C++, or Fortran code from source. Installing Rtools for Windows\nR-INLA package: Model fitting and inference is fully Bayesian using the well-known INLA technique through the R-INLA package. Visit the R-INLA website for further details about how to install the package on MacOS and for information on version compatibilities.\nTo install the latest stable version:\n\ninstall.packages(\"INLA\",repos=c(getOption(\"repos\"),INLA=\"https://inla.r-inla-download.org/R/stable\"), dep=TRUE)"
   },
   {
     "objectID": "index.html",
