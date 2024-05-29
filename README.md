@@ -28,6 +28,9 @@ The Workshop will consist of a
 | Section 4: Multivariate spatial models for high-dimensional areal data                                                       |
 
 
+### R package bigDM
+Available at [CRAN](https://cran.r-project.org/web/packages/bigDM/index.html) (stable version) and [GitHub](https://github.com/spatialstatisticsupna/bigDM) (development version)
+
 ### References
 
 [Orozco-Acosta, E., Adin, A., and Ugarte, M.D. (2021). Scalable Bayesian modeling for smoothing disease risks in large spatial data sets using INLA. _Spatial Statistics_, __41__, 100496.](https://doi.org/10.1016/j.spasta.2021.100496)
