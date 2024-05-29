@@ -1,0 +1,21 @@
+project:
+  type: website
+  output-dir: docs
+
+website:
+  title: "Workshop on areal data"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Workshop
+      - href: Section1.qmd
+        text: Installing bigDM
+
+format:
+  html:
+    theme: cosmo
+    css: styles.css
+    toc: true
+    link-external-newwindow: true
+
+editor: visual

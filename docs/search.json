@@ -1,0 +1,16 @@
+[
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Workshop on Spatio Temporal Modelling",
+    "section": "",
+    "text": "The Workshop will consist of a\nAccess to full programme"
+  },
+  {
+    "objectID": "index.html#workshop-on-areal-data",
+    "href": "index.html#workshop-on-areal-data",
+    "title": "Workshop on Spatio Temporal Modelling",
+    "section": "Workshop on Areal data",
+    "text": "Workshop on Areal data\n\n\n\nBayesian scalable models to analyze high-dimensional areal data using the bigDM library (slides)\n\n\n\n\nSection 1: Installing bigDM package\n\n\nSection 2: Spatial models for high-dimensional areal data\n\n\nSection 3: Spatial-temporal models for high-dimensional areal data\n\n\nSection 4: Multivariate spatial models for high-dimensional areal data"
+  }
+]

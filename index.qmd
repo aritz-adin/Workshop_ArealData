@@ -1,0 +1,5 @@
+---
+title: "Workshop"
+---
+
+{{< include README.qmd >}}

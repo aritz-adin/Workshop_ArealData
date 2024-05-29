@@ -1,0 +1,17 @@
+---
+title: "Section 1: Installing the R package bigDM"
+author: "Aritz Adin"
+date: "2024-06-27"
+date-format: medium
+format:
+  html:
+    toc: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)  
+```
+
+## Prueba
+
+Prueba
