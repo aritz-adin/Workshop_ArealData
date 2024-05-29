@@ -67,8 +67,7 @@ Before installing `bigDM`, ensure that you have the following prerequisites:
 ### Verifying the Installation
 
 Load the package and check its documentation:
-
-```{r, eval=FALSE}
+```{r, message=FALSE, warning=FALSE}
 library(bigDM)
 packageVersion("bigDM")
 
@@ -76,7 +75,7 @@ help("bigDM-package")
 ```
 
 Run a test function:
-```{r, eval=FALSE}
+```{r, message=FALSE, warning=FALSE}
 library(sf)
 library(tmap)
 library(RColorBrewer)
@@ -88,16 +87,16 @@ str(Carto_SpainMUN)
 ## 2) Divide the spatial domain into provinces
 carto.list <- divide_carto(Carto_SpainMUN, ID.group="region")
 carto.NAV <- carto.list$Navarra
-head(Carto.NAV)
+head(carto.NAV)
 
 ## 3) Plot a map with the SMRs
 paleta <- brewer.pal(8,"RdYlGn")[8:1]
 values <- c(-Inf,0.77,0.83,0.91,1,1.10,1.20,1.30,Inf)
 
 tmap_mode("view")
-tm_shape(Carto.NAV) + 
+tm_shape(carto.NAV) + 
   tm_polygons(col="SMR", id="name", palette=paleta,
-              popup.vars=c("ID","region","obs","exp","SMR"),
+              popup.vars=c("ID","obs","exp","SMR"),
               legend.show=T, legend.reverse=T,
               style="fixed", breaks=values, interval.closure="left") + 
   tm_layout(main.title="Colorectal cancer", main.title.position="center",

@@ -40,6 +40,10 @@ programme](https://www2.unavarra.es/gesadj/inst_inamat/archivos-pdf/Program_STWo
 
 ## Workshop on Areal data
 
+``` html
+<a href="https://github.com/aritz-adin/Workshop_ArealData/blob/main/Section1.qmd?raw=True" download>Download Section1.qmd</a>
+```
+
 | Bayesian scalable models to analyze high-dimensional areal data using the bigDM library ([slides](./Workshop_ArealData.pdf)) |
 |------------------------------------------------------------------------------------------------------------------------------|
 | Section 1: Installing bigDM package                                                                                          |
