@@ -15,4 +15,4 @@ The Workshop will consist of a
   - Title: Statistical models for the analysis, prediction and monitoring of space-time data. Applications to infectious diseases and crime.
   - Lecturer: [Jorge Mateu](https://www3.uji.es/~mateu/), University Jaume I of Castellon, Castellon (Spain).
 
-Full programme available at: <https://www2.unavarra.es/gesadj/inst_inamat/archivos-pdf/Program_STWorkshop_Pamplona.pdf>
+![Access to full programme](https://www2.unavarra.es/gesadj/inst_inamat/archivos-pdf/Program_STWorkshop_Pamplona.pdf)
