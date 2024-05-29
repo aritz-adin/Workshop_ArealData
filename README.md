@@ -22,7 +22,16 @@ The Workshop will consist of a
 
 | Bayesian scalable models to analyze high-dimensional areal data using the bigDM library ([slides](./Workshop_ArealData.pdf)) |
 |------------------------------------------------------------------------------------------------------------------------------|
-| Section 1: Installing bigDM package                                                                                          |
+| Section 1: Installing the R package bigDM                                                                                    |
 | Section 2: Spatial models for high-dimensional areal data                                                                    |
 | Section 3: Spatial-temporal models for high-dimensional areal data                                                           |
 | Section 4: Multivariate spatial models for high-dimensional areal data                                                       |
+
+
+### References
+
+[Orozco-Acosta, E., Adin, A., and Ugarte, M.D. (2021). Scalable Bayesian modeling for smoothing disease risks in large spatial data sets using INLA. _Spatial Statistics_, __41__, 100496.](https://doi.org/10.1016/j.spasta.2021.100496)
+
+[Orozco-Acosta, E., Adin, A., and Ugarte, M.D. (2023). Big problems in spatio-temporal disease mapping: methods and software. _Computer Methods and Programs in Biomedicine_, __231__, 107403.](https://doi.org/10.1016/j.cmpb.2023.107403)
+
+[Vicente, G., Adin, A., Goicoa, T., and Ugarte, M.D. (2023). High-dimensional order-free multivariate spatial disease mapping. _Statistics and Computing_, __33__, 104.](https://doi.org/10.1007/s11222-023-10263-x)
