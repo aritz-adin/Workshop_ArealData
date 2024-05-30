@@ -38,7 +38,7 @@ Before installing `bigDM`, ensure that you have the following prerequisites:
 
     -   **At least the stable version of INLA 22.11.22 (or newer) must be installed for the correct use of the `bigDM` package.**
 
-    -   Visit the [R-INLA website](https://cran.r-project.org/bin/windows/Rtools/) for further details about how to install the package on MacOS and for information on version compatibilities.
+    -   Visit the [R-INLA website](https://www.r-inla.org/download-install) for further details about how to install the package on MacOS and for information on version compatibilities.
 
 ### Installation
 
