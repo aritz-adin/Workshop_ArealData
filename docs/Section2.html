@@ -6,8 +6,9 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
+<meta name="author" content="Aritz Adin">
 
-<title>Workshop on Areal Data - Workshop</title>
+<title>Workshop on Areal Data - Section 2: CAR models for spatial disease mapping</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -60,6 +61,8 @@ ul.task-list li input[type="checkbox"] {
   }
 }</script>
 
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
 
 <link rel="stylesheet" href="styles.css">
 </head>
@@ -82,7 +85,7 @@ ul.task-list li input[type="checkbox"] {
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll me-auto">
   <li class="nav-item">
-    <a class="nav-link active" href="./index.html" rel="" target="" aria-current="page">
+    <a class="nav-link" href="./index.html" rel="" target="">
  <span class="menu-text">Workshop</span></a>
   </li>  
   <li class="nav-item">
@@ -90,7 +93,7 @@ ul.task-list li input[type="checkbox"] {
  <span class="menu-text">Installing bigDM</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link" href="./Section2.html" rel="" target="">
+    <a class="nav-link active" href="./Section2.html" rel="" target="" aria-current="page">
  <span class="menu-text">Spatial models</span></a>
   </li>  
 </ul>
@@ -109,7 +112,11 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#workshop-on-areal-data" id="toc-workshop-on-areal-data" class="nav-link active" data-scroll-target="#workshop-on-areal-data">Workshop on Areal data</a></li>
+  <li><a href="#the-car_inla-function" id="toc-the-car_inla-function" class="nav-link active" data-scroll-target="#the-car_inla-function">The <code>CAR_INLA()</code> function</a>
+  <ul class="collapse">
+  <li><a href="#main-input-arguments" id="toc-main-input-arguments" class="nav-link" data-scroll-target="#main-input-arguments">Main input arguments</a></li>
+  </ul></li>
+  <li><a href="#example-1-stomach-cancer-mortality-data" id="toc-example-1-stomach-cancer-mortality-data" class="nav-link" data-scroll-target="#example-1-stomach-cancer-mortality-data">Example 1: stomach cancer mortality data</a></li>
   </ul>
 </nav>
     </div>
@@ -118,14 +125,26 @@ ul.task-list li input[type="checkbox"] {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Workshop on Spatio Temporal Modelling</h1>
+<h1 class="title">Section 2: CAR models for spatial disease mapping</h1>
 </div>
 
 
 
 <div class="quarto-title-meta">
 
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Aritz Adin </p>
+          </div>
+  </div>
     
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">Jun 27, 2024</p>
+    </div>
+  </div>
   
     
   </div>
@@ -133,53 +152,37 @@ ul.task-list li input[type="checkbox"] {
 
 </header>
 
-<p><img src="img/Logos.png" class="img-fluid"></p>
+<p>This practice focuses on how to use the <code>bigDM</code> package to fit the scalable spatial model’s proposals described in <a href="doi:10.1016/j.spasta.2021.100496">Orozco-Acosta et al.&nbsp;(2021)</a> using simulated mortality data from the municipalities of continental Spain.</p>
+<section id="the-car_inla-function" class="level2">
+<h2 class="anchored" data-anchor-id="the-car_inla-function">The <code>CAR_INLA()</code> function</h2>
+<p>This function allows fitting (scalable) spatial Poisson mixed models to areal count data, where several conditional autoregressive (CAR) prior distributions can be specified for the spatial random effects.</p>
+<p>Specifically, the linear predictor is modelled as</p>
+<span class="math display">\[\begin{equation*}
+\log r_{i} = \beta_0 + {\bf x}_{i}^{'}\mathbf{\beta} + \xi_i, \quad \mbox{for} \quad i=1,\ldots,I
+\end{equation*}\]</span>
+<p>where <span class="math inline">\(\beta_0\)</span> is a global intercept, <span class="math inline">\({\bf x}_{i}^{'}=(x_{i1},\ldots,x_{ip})\)</span> is a <span class="math inline">\(p\)</span>-vector of standardized covariates in the <span class="math inline">\(i\)</span>-th area, <span class="math inline">\(\mathbf{\beta}=(\beta_1,\ldots,\beta_p)^{'}\)</span> is the <span class="math inline">\(p\)</span>-vector of fixed effect coefficients, and <span class="math inline">\(\xi_i\)</span> is a spatially structured random effect with a CAR prior distribution.</p>
+<section id="main-input-arguments" class="level3">
+<h3 class="anchored" data-anchor-id="main-input-arguments">Main input arguments</h3>
+<p>What follows is a brief description of the main input arguments and functionalities of the <code>CAR_INLA()</code> function:</p>
 <ul>
-<li><strong>Date</strong>: Jun 25 - Jun 27, 2024</li>
-<li><strong>Location</strong>: <a href="https://www.google.com/maps/place/Aulario+UPNA+-+NUP+Ikasgelategiak/@42.8016298,-1.6396925,16z/data=!4m6!3m5!1s0xd5093b32f073a5f:0x11d48325aebca284!8m2!3d42.8004872!4d-1.6367383!16s%2Fg%2F11bx55hcgs?entry=tts">Public University of Navarra, Aulario building</a>, room A-316</li>
+<li><p><strong><code>carto</code></strong>: object of class <code>sf</code> or <code>SpatialPolygonsDataFrame</code> that contains the data of analysis and its associated cartography file. This object must contain at least the target variables of interest specified in the arguments <code>ID.area</code>, <code>O</code> and <code>E</code>.</p></li>
+<li><p><strong><code>ID.area</code></strong>: character; name of the variable that contains the IDs of spatial areal units.</p></li>
+<li><p><strong><code>O</code></strong>: character; name of the variable that contains the observed number of disease cases for each areal units.</p></li>
+<li><p><strong><code>E</code></strong>: character; name of the variable that contains either the expected number of disease cases or the population at risk for each areal unit.</p></li>
+<li><p><strong><code>X</code></strong>: a character vector containing the names of the covariates within the <code>carto</code> object to be included in the model as fixed effects, or a matrix object playing the role of the fixed effects design matrix. If <code>X=NULL</code> (default), only a global intercept is included in the model as fixed effect.</p></li>
+<li><p><strong><code>W</code></strong>: optional argument with the binary adjacency matrix of the spatial areal units. If <code>NULL</code> (default), this object is computed from the <code>carto</code> argument (two areas are considered as neighbours if they share a common border).</p></li>
+<li><p><strong><code>prior</code></strong>: one of either <code>"Leroux"</code> (default), <code>"intrinsic"</code>, <code>"BYM"</code> or <code>"BYM2"</code>, which specifies the prior distribution considered for the spatial random effect.</p></li>
+<li><p><strong><code>model</code></strong>: one of either <code>"global"</code> or <code>"partition"</code> (default), which specifies the Global model or one of the scalable model proposal’s (<em>Disjoint model</em> and <em>k-order neighbourhood model</em>, respectively).</p></li>
+<li><p><strong><code>k</code></strong>: numeric value with the neighbourhood order used for the partition model. Usually k=2 or 3 is enough to get good results. If <code>k=0</code> (default) the Disjoint model is considered. Only required if <code>model="partition"</code>.</p></li>
+<li><p><strong><code>compute.DIC</code></strong>: logical value; if <code>TRUE</code> (default) then approximate values of the Deviance Information Criterion (DIC) and Watanabe-Akaike Information Criterion (WAIC) are computed.</p></li>
+<li><p><strong><code>compute.fitted.values</code></strong>: logical value (default <code>FALSE</code>); if <code>TRUE</code> transforms the posterior marginal distribution of the linear predictor to the exponential scale (risks or rates).</p></li>
+<li><p><strong><code>inla.mode</code></strong>: one of either <code>"classic"</code> (default) or <code>"compact"</code>, which specifies the approximation method used by INLA. See <code>help(inla)</code> for further details.</p></li>
 </ul>
-<p>The Workshop will consist of a</p>
-<ul>
-<li><p><strong>Course on Geostatistics</strong></p>
-<ul>
-<li><p>Title: An introduction to Bayesian spatial regression.</p></li>
-<li><p>Lecturer: <a href="http://alex-schmidt.research.mcgill.ca/">Alexandra M. Schmidt</a>, Professor of Biostatistics, Department of Epidemiology, Biostatistics and Occupational Health, McGill University.</p></li>
-</ul></li>
-<li><p><strong>Workshop on Areal Data</strong></p>
-<ul>
-<li><p>Title: Bayesian scalable models to analyze high-dimensional areal data using the bigDM library.</p></li>
-<li><p>Lecturer: <a href="https://github.com/aritz-adin">Aritz Adin</a>, Public University of Navarre, Pamplona (Spain).</p></li>
-</ul></li>
-<li><p><strong>Seminar on Point Processes</strong></p>
-<ul>
-<li><p>Title: Statistical models for the analysis, prediction and monitoring of space-time data. Applications to infectious diseases and crime.</p></li>
-<li><p>Lecturer: <a href="https://www3.uji.es/~mateu/">Jorge Mateu</a>, University Jaume I of Castellon, Castellon (Spain).</p></li>
-</ul></li>
-</ul>
-<p><a href="https://www2.unavarra.es/gesadj/inst_inamat/archivos-pdf/Program_STWorkshop_Pamplona.pdf">Access to full programme</a></p>
-<section id="workshop-on-areal-data" class="level2">
-<h2 class="anchored" data-anchor-id="workshop-on-areal-data">Workshop on Areal data</h2>
-<table class="table">
-<thead>
-<tr class="header">
-<th>Bayesian scalable models to analyze high-dimensional areal data using the bigDM library (<a href="./Workshop_ArealData.pdf">slides</a>)</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>Section 1: Installing bigDM package (<a href="https://github.com/aritz-adin/Workshop_ArealData/blob/main/Section1.qmd">Section1.qmd</a>)</td>
-</tr>
-<tr class="even">
-<td>Section 2: Spatial models for high-dimensional areal data</td>
-</tr>
-<tr class="odd">
-<td>Section 3: Spatial-temporal models for high-dimensional areal data</td>
-</tr>
-<tr class="even">
-<td>Section 4: Multivariate spatial models for high-dimensional areal data</td>
-</tr>
-</tbody>
-</table>
+<p>For further details, please refer to the <a href="https://cran.r-project.org/web/packages/bigDM/bigDM.pdf">reference manual</a> and the <a href="https://github.com/spatialstatisticsupna/bigDM/tree/master?tab=readme-ov-file#basic-use">vignettes</a> accompanying this package.</p>
+</section>
+</section>
+<section id="example-1-stomach-cancer-mortality-data" class="level2">
+<h2 class="anchored" data-anchor-id="example-1-stomach-cancer-mortality-data">Example 1: stomach cancer mortality data</h2>
 
 
 </section>

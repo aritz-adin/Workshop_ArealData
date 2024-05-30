@@ -3,13 +3,15 @@ project:
   output-dir: docs
 
 website:
-  title: "Workshop on areal data"
+  title: "Workshop on Areal Data"
   navbar:
     left:
       - href: index.qmd
         text: Workshop
       - href: Section1.qmd
         text: Installing bigDM
+      - href: Section2.qmd
+        text: Spatial models
 
 format:
   html:

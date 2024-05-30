@@ -1,0 +1,62 @@
+---
+title: "Section 2: CAR models for spatial disease mapping"
+author: "Aritz Adin"
+date: "2024-06-27"
+date-format: medium
+format:
+  html:
+    toc: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)  
+```
+
+This practice focuses on how to use the `bigDM` package to fit the scalable spatial model’s proposals described in [Orozco-Acosta et al. (2021)](doi:10.1016/j.spasta.2021.100496) using simulated mortality data from the municipalities of continental Spain.
+
+## The `CAR_INLA()` function
+
+This function allows fitting (scalable) spatial Poisson mixed models to areal count data, where several conditional autoregressive (CAR) prior distributions can be specified for the spatial random effects.
+
+Specifically, the linear predictor is modelled as
+
+```{=tex}
+\begin{equation*}
+\log r_{i} = \beta_0 + {\bf x}_{i}^{'}\mathbf{\beta} + \xi_i, \quad \mbox{for} \quad i=1,\ldots,I
+\end{equation*}
+```
+where $\beta_0$ is a global intercept, ${\bf x}_{i}^{'}=(x_{i1},\ldots,x_{ip})$ is a $p$-vector of standardized covariates in the $i$-th area, $\mathbf{\beta}=(\beta_1,\ldots,\beta_p)^{'}$ is the $p$-vector of fixed effect coefficients, and $\xi_i$ is a spatially structured random effect with a CAR prior distribution.
+
+### Main input arguments
+
+What follows is a brief description of the main input arguments and functionalities of the `CAR_INLA()` function:
+
+-   **`carto`**: object of class `sf` or `SpatialPolygonsDataFrame` that contains the data of analysis and its associated cartography file. This object must contain at least the target variables of interest specified in the arguments `ID.area`, `O` and `E`.
+
+-   **`ID.area`**: character; name of the variable that contains the IDs of spatial areal units.
+
+-   **`O`**: character; name of the variable that contains the observed number of disease cases for each areal units.
+
+-   **`E`**: character; name of the variable that contains either the expected number of disease cases or the population at risk for each areal unit.
+
+-   **`X`**: a character vector containing the names of the covariates within the `carto` object to be included in the model as fixed effects, or a matrix object playing the role of the fixed effects design matrix. If `X=NULL` (default), only a global intercept is included in the model as fixed effect.
+
+-   **`W`**: optional argument with the binary adjacency matrix of the spatial areal units. If `NULL` (default), this object is computed from the `carto` argument (two areas are considered as neighbours if they share a common border).
+
+-   **`prior`**: one of either `"Leroux"` (default), `"intrinsic"`, `"BYM"` or `"BYM2"`, which specifies the prior distribution considered for the spatial random effect.
+
+-   **`model`**: one of either `"global"` or `"partition"` (default), which specifies the Global model or one of the scalable model proposal’s (*Disjoint model* and *k-order neighbourhood model*, respectively).
+
+-   **`k`**: numeric value with the neighbourhood order used for the partition model. Usually k=2 or 3 is enough to get good results. If `k=0` (default) the Disjoint model is considered. Only required if `model="partition"`.
+
+-   **`compute.DIC`**: logical value; if `TRUE` (default) then approximate values of the Deviance Information Criterion (DIC) and Watanabe-Akaike Information Criterion (WAIC) are computed.
+
+-   **`compute.fitted.values`**: logical value (default `FALSE`); if `TRUE` transforms the posterior marginal distribution of the linear predictor to the exponential scale (risks or rates).
+
+-   **`inla.mode`**: one of either `"classic"` (default) or `"compact"`, which specifies the approximation method used by INLA. See `help(inla)` for further details.
+
+For further details, please refer to the [reference manual](https://cran.r-project.org/web/packages/bigDM/bigDM.pdf) and the [vignettes](https://github.com/spatialstatisticsupna/bigDM/tree/master?tab=readme-ov-file#basic-use) accompanying this package.
+
+
+## Example 1: stomach cancer mortality data
+
