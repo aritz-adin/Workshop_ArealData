@@ -157,7 +157,7 @@ plot(carto.k0$`Castilla y Leon`$geometry, col="lightgrey", add=TRUE)
 ```
 
 ### Compare the results
-```{r}
+```{r, message=FALSE, warning=FALSE}
 library(RColorBrewer)
 
 ## Carto object of the Spanish provinces 
@@ -178,8 +178,7 @@ values <- c(-Inf,log(c(0.83,0.91,0.95,1,1.05,1.10,1.20)),Inf)
 
 tmap_mode("plot")
 Map.risk <- tm_shape(Carto_SpainMUN) + 
-  tm_polygons(col=c("Global","k0","k1","k2"),
-              palette=paleta, border.alpha=0,
+  tm_polygons(col=c("Global","k0","k1","k2"), palette=paleta, border.alpha=0,
               title="Risk", legend.show=T, legend.reverse=T,
               style="fixed", breaks=values, interval.closure="left") + 
   tm_shape(carto.prov) + tm_borders(col="gray40") + 
@@ -202,9 +201,9 @@ values <- c(0,0.1,0.2,0.8,0.9,1)
 
 tmap_mode("plot")
 Map.prob <- tm_shape(Carto_SpainMUN) + 
-  tm_polygons(col=c("Global","k0","k1","k2"),
-              palette=paleta, border.alpha=0,
+  tm_polygons(col=c("Global","k0","k1","k2"), palette=paleta, border.alpha=0,
               title="Prob", legend.show=T, legend.reverse=T,
+              style="fixed", breaks=values, interval.closure="left",
               labels=c("[0-0.1)","[0.1-0.2)","[0.2-0.8)","[0.8-0.9)","[0.9-1]")) + 
   tm_shape(carto.prov) + tm_borders(col="gray40") + 
   tm_layout(main.title="Posterior exceedence probabilities", main.title.position="center",
@@ -215,3 +214,114 @@ Map.prob <- tm_shape(Carto_SpainMUN) +
 
 print(Map.prob)
 ```
+
+
+## Example 2: ecological regression model
+
+In this second example, we are going to fit a spatial model that incorporates both area-level CAR random effects and a set of explanatory variables, with the aim of comparing the regression coefficient estimates obtained from the global and partitioned models.
+
+For this, we will use the data contained in the `Data_MultiCancer` object as follows:
+```{r}
+## Define the data and the spatial covariates ##
+data("Data_MultiCancer")
+head(Data_MultiCancer)
+
+data <- Data_MultiCancer[Data_MultiCancer$disease==1,]
+data$X1 <- Data_MultiCancer[Data_MultiCancer$disease==2,"SMR"]
+data$X2 <- Data_MultiCancer[Data_MultiCancer$disease==3,"SMR"]
+head(data)
+
+## Define the sf object ##
+Carto_SpainMUN$obs <- NULL
+Carto_SpainMUN$exp <- NULL
+Carto_SpainMUN$SMR <- NULL
+
+carto <- merge(Carto_SpainMUN,data,by="ID")
+head(carto)
+```
+
+A character vector with the covariate names or the design matrix of the fixed effects can be included through the `X=...` argument of the `CAR_INLA()` function:
+```{r}
+iCAR.Global <- CAR_INLA(carto=carto, ID.area="ID",
+                        O="obs", E="exp", X=c("X1","X2"),
+                        model="global", prior="intrinsic", inla.mode="compact")
+
+iCAR.k1 <- CAR_INLA(carto=carto, ID.area="ID",
+                    O="obs", E="exp", X=c("X1","X2"),
+                    model="partition", k=1, ID.group="region",
+                    prior="intrinsic", inla.mode="compact")
+```
+### Local and global estimates of the fixed effects
+
+Summary statistics of the posterior marginal estimates for the global model's fixed effects:
+```{r}
+iCAR.Global$summary.fixed
+```
+In partition models, local estimates of the fixed effects coefficients are obtained in each province: 
+```{r}
+x1 <- grep("^X1",rownames(iCAR.k1$summary.fixed.partition))
+head(iCAR.k1$summary.fixed.partition[x1,])
+
+x2 <- grep("^X2",rownames(iCAR.k1$summary.fixed.partition))
+head(iCAR.k1$summary.fixed.partition[x2,])
+
+## Maps with posterior median estimates at each province
+carto.prov <- aggregate(Carto_SpainMUN[,"geometry"],list(ID.group=st_drop_geometry(Carto_SpainMUN)$region), head)
+
+carto.prov$X1 <- iCAR.k1$summary.fixed.partition$`0.5quant`[x1]
+carto.prov$X2 <- iCAR.k1$summary.fixed.partition$`0.5quant`[x2]
+
+paleta <- c(brewer.pal(3,"Reds")[3:2],brewer.pal(5,"Blues")[-1])
+values <- seq(-0.2,0.4,0.1)
+
+tm_shape(carto.prov) + 
+  tm_polygons(col=c("X1","X2"), palette=paleta,
+              title="", legend.show=T, legend.reverse=T,
+              style="fixed", breaks=values, interval.closure="left") + 
+  tm_layout(main.title="Posterior median estimates", main.title.position="center",
+            legend.outside=T, legend.outside.position="right", legend.frame=F,
+            panel.labels=c("X1 covariate","X2 covariate"),
+            legend.outside.size=0.2, outer.margins=c(0.02,0.01,0.02,0.01)) + 
+  tm_facets(nrow=1, ncol=2)
+```
+Global estimates can be also computed by combining the marginal estimates in each partition by applying the CMC algorithm:
+```{r}
+rbind(Global=iCAR.Global$summary.fixed["X1",1:5],
+      `k1-CMC`=iCAR.k1$summary.fixed["X1",1:5])
+
+rbind(Global=iCAR.Global$summary.fixed["X2",1:5],
+      `k1-CMC`=iCAR.k1$summary.fixed["X2",1:5])
+```
+
+```{r, echo=FALSE}
+par(mfrow=c(1,2), pty="s")
+
+## X1 covariate ##
+plot(inla.smarginal(iCAR.Global$marginals.fixed$`X1`), type="l", 
+     xlab="", ylab="", main="X1 covariate",
+     col="blue", lwd=2, xlim=c(-0.2,0.4),)
+
+for(i in x1){
+  lines(inla.smarginal(iCAR.k1$marginals.fixed.partition[[i]]), lty=2)
+}
+
+lines(inla.smarginal(iCAR.k1$marginals.fixed$`X1`), col="red")
+
+legend("topleft", legend=c("Global model","CMC estimate"),
+       lwd=2, bty="n", col=c("blue","red"))
+
+## X2 covariate ##
+plot(inla.smarginal(iCAR.Global$marginals.fixed$`X2`), type="l", 
+     xlab="", ylab="", main="X2 covariate",
+     col="blue", lwd=2, xlim=c(-0.2,0.4),)
+
+for(i in x2){
+  lines(inla.smarginal(iCAR.k1$marginals.fixed.partition[[i]]), lty=2)
+}
+
+lines(inla.smarginal(iCAR.k1$marginals.fixed$`X2`), col="red")
+
+legend("topright", legend=c("Global model","CMC estimate"),
+       lwd=2, bty="n", col=c("blue","red"))
+```
+
