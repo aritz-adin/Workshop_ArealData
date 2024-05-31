@@ -21,9 +21,9 @@ This function allows fitting (scalable) spatial Poisson mixed models to areal co
 Specifically, the linear predictor is modelled as
 
 ```{=tex}
-\begin{equation*}
+\begin{equation}
 \log r_{i} = \beta_0 + {\bf x}_{i}^{'}\mathbf{\beta} + \xi_i, \quad \mbox{for} \quad i=1,\ldots,I
-\end{equation*}
+\end{equation}
 ```
 where $\beta_0$ is a global intercept, ${\bf x}_{i}^{'}=(x_{i1},\ldots,x_{ip})$ is a $p$-vector of standardized covariates in the $i$-th area, $\mathbf{\beta}=(\beta_1,\ldots,\beta_p)^{'}$ is the $p$-vector of fixed effect coefficients, and $\xi_i$ is a spatially structured random effect with a CAR prior distribution.
 
@@ -57,6 +57,161 @@ What follows is a brief description of the main input arguments and functionalit
 
 For further details, please refer to the [reference manual](https://cran.r-project.org/web/packages/bigDM/bigDM.pdf) and the [vignettes](https://github.com/spatialstatisticsupna/bigDM/tree/master?tab=readme-ov-file#basic-use) accompanying this package.
 
-
 ## Example 1: stomach cancer mortality data
 
+The main input argument of the `CAR_INLA()` function must be an object of class `sf` (simple feature) or `SpatialPolygonsDataFrame` that contains the data of analysis and its associated cartography file. Standard .shp files (shapefiles) can be loaded as `sf` objects in R using the `sf::st_read()` function.
+
+Note that **bigDM** includes the `Carto_SpainMUN` object with the polygons of Spanish municipalities and simulated colorectal cancer mortality data (modified in order to preserve the confidentiality of the original data).
+
+```{r}
+library(bigDM)
+library(INLA)
+library(sf)
+library(tmap)
+
+data("Carto_SpainMUN")
+head(Carto_SpainMUN)
+```
+
+### Global model
+We start by fitting the *Global model* described in Equation (1), where the entire neighbourhood graph of the areal units (municipalities) is considered to define the adjacency matrix ${\bf W}$.
+
+The `connect_subgraphs()` function computes a fully connected graph and its associated adjacency matrix by merging disjoint connected subgraphs through its nearest polygon centroids. 
+```{r}
+## NOTE: Not necessary (shown for illustrative purposes only)
+aux <- connect_subgraphs(Carto_SpainMUN, ID.area="ID")
+```
+The function returns a list with the following two elements:
+* nb: the modified neighbours list
+* W: associated spatial adjacency matrix of class `dgCMatrix`
+```{r}
+str(aux,1)
+
+summary(aux$nb)
+aux$W[1:10,1:10]
+```
+
+The *Global model* with an iCAR/BYM2 prior distribution are fitted using the `CAR_INLA()` function as follows:
+```{r}
+## Fit the models
+iCAR.Global <- CAR_INLA(carto=Carto_SpainMUN, ID.area="ID", O="obs", E="exp",
+                        model="global", prior="intrinsic", inla.mode="compact")
+summary(iCAR.Global)
+
+BYM2.Global <- CAR_INLA(carto=Carto_SpainMUN, ID.area="ID", O="obs", E="exp",
+                        model="global", prior="BYM2", inla.mode="compact")
+summary(BYM2.Global)
+
+## Model comparison
+compare.DIC <- function(x){
+  data.frame(mean.deviance=x$dic$mean.deviance, p.eff=x$dic$p.eff,
+             DIC=x$dic$dic, WAIC=x$waic$waic,
+             time=x$cpu.used["Total"])
+}
+do.call(rbind,lapply(list(iCAR=iCAR.Global, BYM2=BYM2.Global), compare.DIC))
+
+plot(iCAR.Global$summary.linear.predictor$`0.5quant`,
+     BYM2.Global$summary.linear.predictor$`0.5quant`,
+     xlim=c(-0.5,0.5), ylim=c(-0.5,0.5),
+     xlab="iCAR model", ylab="BYM2 model",
+     main="Posterior median estimates")
+lines(c(-1,1),c(-1,1))
+```
+
+### Partition models
+A natural choice for defining the partition of the entire spatial domain could be using administrative subdivisions, such as provinces or states. For our example data, the $D=15$ Autonomous Regions of Spain are used as a partition of the $n=7907$ municipalities (`Carto_SpainMUN$region` variable).
+```{r}
+tm_shape(Carto_SpainMUN) +
+  tm_polygons(col="region") + 
+  tm_layout(legend.outside=TRUE)
+```
+
+The *disjoint* and *k-order neighbourhood models* with an iCAR prior distribution are fitted using the `CAR_INLA()` function as:
+```{r}
+iCAR.k0 <- CAR_INLA(carto=Carto_SpainMUN, ID.area="ID", O="obs", E="exp",
+                    model="partition", k=0, ID.group="region",
+                    prior="intrinsic", inla.mode="compact")
+iCAR.k0$cpu.used
+
+iCAR.k1 <- CAR_INLA(carto=Carto_SpainMUN, ID.area="ID", O="obs", E="exp",
+                    model="partition", k=1, ID.group="region",
+                    prior="intrinsic", inla.mode="compact")
+iCAR.k1$cpu.used
+
+iCAR.k2 <- CAR_INLA(carto=Carto_SpainMUN, ID.area="ID", O="obs", E="exp",
+                    model="partition", k=2, ID.group="region",
+                    prior="intrinsic", inla.mode="compact")
+iCAR.k2$cpu.used
+```
+Internally, the `divide_carto()` function is called to compute the overlapping set of regions $\{D_1,\ldots,D_{15}\}$ according to the grouping variable `ID.group="region"`. The neighbourhood order to add polygons at the border of the spatial subdomains is controlled by the `k` argument.
+```{r}
+## Compute subdomains for k=0,1 and 2
+carto.k0 <- divide_carto(carto=Carto_SpainMUN, ID.group="region", k=0)
+carto.k1 <- divide_carto(carto=Carto_SpainMUN, ID.group="region", k=1)
+carto.k2 <- divide_carto(carto=Carto_SpainMUN, ID.group="region", k=2)
+
+## Plot the spatial polygons for the autonomous region of Castilla y Leon 
+plot(carto.k2$`Castilla y Leon`$geometry, col="dodgerblue4", main="Castilla y Leon")
+plot(carto.k1$`Castilla y Leon`$geometry, col="dodgerblue", add=TRUE)
+plot(carto.k0$`Castilla y Leon`$geometry, col="lightgrey", add=TRUE)
+```
+
+### Compare the results
+```{r}
+library(RColorBrewer)
+
+## Carto object of the Spanish provinces 
+carto.prov <- aggregate(Carto_SpainMUN[,"geometry"],list(ID.group=st_drop_geometry(Carto_SpainMUN)$region), head)
+
+## Model selection criteria
+MODELS <- list(Global=iCAR.Global, k0=iCAR.k0, k1=iCAR.k1, k2=iCAR.k2)
+do.call(rbind,lapply(MODELS, compare.DIC))
+
+## Maps with posterior median estimates of log-risks
+Carto_SpainMUN$Global <- iCAR.Global$summary.linear.predictor$`0.5quant`
+Carto_SpainMUN$k0 <- iCAR.k0$summary.linear.predictor$`0.5quant`
+Carto_SpainMUN$k1 <- iCAR.k1$summary.linear.predictor$`0.5quant`
+Carto_SpainMUN$k2 <- iCAR.k2$summary.linear.predictor$`0.5quant`
+
+paleta <- brewer.pal(8,"RdYlGn")[8:1]
+values <- c(-Inf,log(c(0.83,0.91,0.95,1,1.05,1.10,1.20)),Inf)
+
+tmap_mode("plot")
+Map.risk <- tm_shape(Carto_SpainMUN) + 
+  tm_polygons(col=c("Global","k0","k1","k2"),
+              palette=paleta, border.alpha=0,
+              title="Risk", legend.show=T, legend.reverse=T,
+              style="fixed", breaks=values, interval.closure="left") + 
+  tm_shape(carto.prov) + tm_borders(col="gray40") + 
+  tm_layout(main.title="Posterior median estimates", main.title.position="center",
+            panel.labels=c("Global model","Disjoint model","1st-order nb","2nd-order nb"),
+            legend.outside=T, legend.outside.position="right", legend.frame=F,
+            legend.outside.size=0.2, outer.margins=c(0.02,0.01,0.02,0.01)) + 
+  tm_facets(nrow=2, ncol=2)
+
+print(Map.risk)
+
+## Maps with posterior exceedence probabilities
+Carto_SpainMUN$Global <- 1-iCAR.Global$summary.linear.predictor$`0cdf`
+Carto_SpainMUN$k0 <- 1-iCAR.k0$summary.linear.predictor$`0cdf`
+Carto_SpainMUN$k1 <- 1-iCAR.k1$summary.linear.predictor$`0cdf`
+Carto_SpainMUN$k2 <- 1-iCAR.k2$summary.linear.predictor$`0cdf`
+
+paleta <- brewer.pal(6,"Blues")[-1]
+values <- c(0,0.1,0.2,0.8,0.9,1)
+
+tmap_mode("plot")
+Map.prob <- tm_shape(Carto_SpainMUN) + 
+  tm_polygons(col=c("Global","k0","k1","k2"),
+              palette=paleta, border.alpha=0,
+              title="Prob", legend.show=T, legend.reverse=T,
+              labels=c("[0-0.1)","[0.1-0.2)","[0.2-0.8)","[0.8-0.9)","[0.9-1]")) + 
+  tm_shape(carto.prov) + tm_borders(col="gray40") + 
+  tm_layout(main.title="Posterior exceedence probabilities", main.title.position="center",
+            panel.labels=c("Global model","Disjoint model","1st-order nb","2nd-order nb"),
+            legend.outside=T, legend.outside.position="right", legend.frame=F,
+            legend.outside.size=0.2, outer.margins=c(0.02,0.01,0.02,0.01)) + 
+  tm_facets(nrow=2, ncol=2)
+
+print(Map.prob)
+```
