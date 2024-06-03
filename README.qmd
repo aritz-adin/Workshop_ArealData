@@ -32,9 +32,9 @@ The Workshop will consist of a
 
 ## Workshop on Areal data
 
-| Bayesian scalable models to analyze high-dimensional areal data using the bigDM library ([slides](./Workshop_ArealData.pdf))                        |
+| Bayesian scalable models to analyze high-dimensional areal data using the bigDM library ([slides](./Workshop_ArealData.pdf))                                     |
 |------------------------------------------------------------------------|
-| Section 1: Installing bigDM package ([Section1.qmd](https://github.com/aritz-adin/Workshop_ArealData/blob/main/Section1.qmd))                       |
-| Section 2: Spatial models for high-dimensional areal data ([Section2.qmd](https://github.com/aritz-adin/Workshop_ArealData/blob/main/Section2.qmd)) |
-| Section 3: Spatial-temporal models for high-dimensional areal data                                                                                  |
-| Section 4: Multivariate spatial models for high-dimensional areal data                                                                              |
+| Section 1: Installing bigDM package ([Section1.qmd](https://github.com/aritz-adin/Workshop_ArealData/blob/main/Section1.qmd))                                    |
+| Section 2: Spatial models for high-dimensional areal data ([Section2.qmd](https://github.com/aritz-adin/Workshop_ArealData/blob/main/Section2.qmd))              |
+| Section 3: Multivariate spatial models for high-dimensional areal data ([Section3.qmd](https://github.com/aritz-adin/Workshop_ArealData/blob/main/Section3.qmd)) |
+| Section 4: Spatial-temporal models for high-dimensional areal data ([Section4.qmd](https://github.com/aritz-adin/Workshop_ArealData/blob/main/Section4.qmd))     |

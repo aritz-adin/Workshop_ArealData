@@ -130,6 +130,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <a class="nav-link active" href="./Section2.html" rel="" target="" aria-current="page">
  <span class="menu-text">Spatial models</span></a>
   </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./Section3.html" rel="" target="">
+ <span class="menu-text">Multivariate models</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./Section4.html" rel="" target="">
+ <span class="menu-text">Spatio-temporal models</span></a>
+  </li>  
 </ul>
             <div class="quarto-navbar-tools ms-auto">
 </div>
@@ -210,6 +218,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <ul>
 <li><p><strong><code>carto</code></strong>: object of class <code>sf</code> or <code>SpatialPolygonsDataFrame</code> that contains the data of analysis and its associated cartography file. This object must contain at least the target variables of interest specified in the arguments <code>ID.area</code>, <code>O</code> and <code>E</code>.</p></li>
 <li><p><strong><code>ID.area</code></strong>: character; name of the variable that contains the IDs of spatial areal units.</p></li>
+<li><p><strong><code>ID.group</code></strong>: character; name of the variable that contains the IDs of the spatial partition (grouping variable). Only required if <code>model="partition"</code>.</p></li>
 <li><p><strong><code>O</code></strong>: character; name of the variable that contains the observed number of disease cases for each areal units.</p></li>
 <li><p><strong><code>E</code></strong>: character; name of the variable that contains either the expected number of disease cases or the population at risk for each areal unit.</p></li>
 <li><p><strong><code>X</code></strong>: a character vector containing the names of the covariates within the <code>carto</code> object to be included in the model as fixed effects, or a matrix object playing the role of the fixed effects design matrix. If <code>X=NULL</code> (default), only a global intercept is included in the model as fixed effect.</p></li>
@@ -355,7 +364,7 @@ STEP 2: Fitting global model with INLA (this may take a while...)</code></pre>
 <div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(iCAR.Global)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Time used:
-    Pre = 3.3, Running = 4.58, Post = 1.36, Total = 9.24 
+    Pre = 3.43, Running = 4.79, Post = 1.51, Total = 9.72 
 Fixed effects:
               mean    sd 0.025quant 0.5quant 0.975quant   mode kld
 (Intercept) -0.007 0.006     -0.019   -0.007      0.005 -0.007   0
@@ -389,7 +398,7 @@ STEP 2: Fitting global model with INLA (this may take a while...)</code></pre>
 <div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(BYM2.Global)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Time used:
-    Pre = 3.13, Running = 15.6, Post = 2.3, Total = 21 
+    Pre = 3.26, Running = 16.3, Post = 2.27, Total = 21.9 
 Fixed effects:
               mean    sd 0.025quant 0.5quant 0.975quant   mode kld
 (Intercept) -0.009 0.006     -0.021   -0.009      0.003 -0.009   0
@@ -423,9 +432,9 @@ Posterior summaries for the linear predictor and the fitted values are computed
 <span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>}</span>
 <span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a><span class="fu">do.call</span>(rbind,<span class="fu">lapply</span>(<span class="fu">list</span>(<span class="at">iCAR=</span>iCAR.Global, <span class="at">BYM2=</span>BYM2.Global), compare.DIC))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>     mean.deviance    p.eff      DIC     WAIC      time
-iCAR      27087.61 342.1213 27429.73 27430.14  9.236164
-BYM2      27049.38 376.9128 27426.30 27414.59 21.042178</code></pre>
+<pre><code>     mean.deviance    p.eff      DIC     WAIC     time
+iCAR      27087.61 342.1213 27429.73 27430.14  9.72430
+BYM2      27049.38 376.9136 27426.30 27414.59 21.85606</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(iCAR.Global<span class="sc">$</span>summary.linear.predictor<span class="sc">$</span><span class="st">`</span><span class="at">0.5quant</span><span class="st">`</span>,</span>
 <span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>     BYM2.Global<span class="sc">$</span>summary.linear.predictor<span class="sc">$</span><span class="st">`</span><span class="at">0.5quant</span><span class="st">`</span>,</span>
@@ -476,8 +485,8 @@ STEP 3: Merging the results</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>iCAR.k0<span class="sc">$</span>cpu.used</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code> Running  Merging    Total 
-24.28893 19.37000 43.65893 </code></pre>
+<pre><code>Running Merging   Total 
+23.3122 20.3300 43.6422 </code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>iCAR.k1 <span class="ot">&lt;-</span> <span class="fu">CAR_INLA</span>(<span class="at">carto=</span>Carto_SpainMUN, <span class="at">ID.area=</span><span class="st">"ID"</span>, <span class="at">O=</span><span class="st">"obs"</span>, <span class="at">E=</span><span class="st">"exp"</span>,</span>
 <span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>                    <span class="at">model=</span><span class="st">"partition"</span>, <span class="at">k=</span><span class="dv">1</span>, <span class="at">ID.group=</span><span class="st">"region"</span>,</span>
@@ -505,7 +514,7 @@ STEP 3: Merging the results</code></pre>
 <div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>iCAR.k1<span class="sc">$</span>cpu.used</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> Running  Merging    Total 
-24.14785 24.81000 48.95785 </code></pre>
+24.86217 26.62000 51.48217 </code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a>iCAR.k2 <span class="ot">&lt;-</span> <span class="fu">CAR_INLA</span>(<span class="at">carto=</span>Carto_SpainMUN, <span class="at">ID.area=</span><span class="st">"ID"</span>, <span class="at">O=</span><span class="st">"obs"</span>, <span class="at">E=</span><span class="st">"exp"</span>,</span>
 <span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>                    <span class="at">model=</span><span class="st">"partition"</span>, <span class="at">k=</span><span class="dv">2</span>, <span class="at">ID.group=</span><span class="st">"region"</span>,</span>
@@ -533,7 +542,7 @@ STEP 3: Merging the results</code></pre>
 <div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>iCAR.k2<span class="sc">$</span>cpu.used</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> Running  Merging    Total 
-26.13143 26.55000 52.68143 </code></pre>
+27.70108 26.30000 54.00108 </code></pre>
 </div>
 </div>
 <p>Internally, the <code>divide_carto()</code> function is called to compute the overlapping set of regions <span class="math inline">\(\{D_1,\ldots,D_{15}\}\)</span> according to the grouping variable <code>ID.group="region"</code>. The neighbourhood order to add polygons at the border of the spatial subdomains is controlled by the <code>k</code> argument.</p>
@@ -558,17 +567,17 @@ STEP 3: Merging the results</code></pre>
 <div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(RColorBrewer)</span>
 <span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a><span class="do">## Carto object of the Spanish provinces </span></span>
-<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a>carto.prov <span class="ot">&lt;-</span> <span class="fu">aggregate</span>(Carto_SpainMUN[,<span class="st">"geometry"</span>],<span class="fu">list</span>(<span class="at">ID.group=</span><span class="fu">st_drop_geometry</span>(Carto_SpainMUN)<span class="sc">$</span>region), head)</span>
+<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a>carto.CCAA <span class="ot">&lt;-</span> <span class="fu">aggregate</span>(Carto_SpainMUN[,<span class="st">"geometry"</span>],<span class="fu">list</span>(<span class="at">ID.group=</span><span class="fu">st_drop_geometry</span>(Carto_SpainMUN)<span class="sc">$</span>region), head)</span>
 <span id="cb46-5"><a href="#cb46-5" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb46-6"><a href="#cb46-6" aria-hidden="true" tabindex="-1"></a><span class="do">## Model selection criteria</span></span>
 <span id="cb46-7"><a href="#cb46-7" aria-hidden="true" tabindex="-1"></a>MODELS <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">Global=</span>iCAR.Global, <span class="at">k0=</span>iCAR.k0, <span class="at">k1=</span>iCAR.k1, <span class="at">k2=</span>iCAR.k2)</span>
 <span id="cb46-8"><a href="#cb46-8" aria-hidden="true" tabindex="-1"></a><span class="fu">do.call</span>(rbind,<span class="fu">lapply</span>(MODELS, compare.DIC))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>       mean.deviance    p.eff      DIC     WAIC      time
-Global      27087.61 342.1213 27429.73 27430.14  9.236164
-k0          27099.63 344.8553 27444.49 27442.46 43.658928
-k1          27100.51 333.7235 27434.24 27436.32 48.957853
-k2          27130.18 306.8484 27437.03 27441.08 52.681430</code></pre>
+<pre><code>       mean.deviance    p.eff      DIC     WAIC     time
+Global      27087.61 342.1213 27429.73 27430.14  9.72430
+k0          27100.06 344.7219 27444.78 27443.66 43.64220
+k1          27098.41 333.2340 27431.64 27432.21 51.48217
+k2          27131.06 307.4862 27438.54 27442.80 54.00108</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="do">## Maps with posterior median estimates of log-risks</span></span>
 <span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>Carto_SpainMUN<span class="sc">$</span>Global <span class="ot">&lt;-</span> iCAR.Global<span class="sc">$</span>summary.linear.predictor<span class="sc">$</span><span class="st">`</span><span class="at">0.5quant</span><span class="st">`</span></span>
@@ -582,9 +591,9 @@ k2          27130.18 306.8484 27437.03 27441.08 52.681430</code></pre>
 <span id="cb48-10"><a href="#cb48-10" aria-hidden="true" tabindex="-1"></a><span class="fu">tmap_mode</span>(<span class="st">"plot"</span>)</span>
 <span id="cb48-11"><a href="#cb48-11" aria-hidden="true" tabindex="-1"></a>Map.risk <span class="ot">&lt;-</span> <span class="fu">tm_shape</span>(Carto_SpainMUN) <span class="sc">+</span> </span>
 <span id="cb48-12"><a href="#cb48-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_polygons</span>(<span class="at">col=</span><span class="fu">c</span>(<span class="st">"Global"</span>,<span class="st">"k0"</span>,<span class="st">"k1"</span>,<span class="st">"k2"</span>), <span class="at">palette=</span>paleta, <span class="at">border.alpha=</span><span class="dv">0</span>,</span>
-<span id="cb48-13"><a href="#cb48-13" aria-hidden="true" tabindex="-1"></a>              <span class="at">title=</span><span class="st">"Risk"</span>, <span class="at">legend.show=</span>T, <span class="at">legend.reverse=</span>T,</span>
+<span id="cb48-13"><a href="#cb48-13" aria-hidden="true" tabindex="-1"></a>              <span class="at">title=</span><span class="st">"log-risks"</span>, <span class="at">legend.show=</span>T, <span class="at">legend.reverse=</span>T,</span>
 <span id="cb48-14"><a href="#cb48-14" aria-hidden="true" tabindex="-1"></a>              <span class="at">style=</span><span class="st">"fixed"</span>, <span class="at">breaks=</span>values, <span class="at">interval.closure=</span><span class="st">"left"</span>) <span class="sc">+</span> </span>
-<span id="cb48-15"><a href="#cb48-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_shape</span>(carto.prov) <span class="sc">+</span> <span class="fu">tm_borders</span>(<span class="at">col=</span><span class="st">"gray40"</span>) <span class="sc">+</span> </span>
+<span id="cb48-15"><a href="#cb48-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_shape</span>(carto.CCAA) <span class="sc">+</span> <span class="fu">tm_borders</span>(<span class="at">col=</span><span class="st">"gray40"</span>) <span class="sc">+</span> </span>
 <span id="cb48-16"><a href="#cb48-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_layout</span>(<span class="at">main.title=</span><span class="st">"Posterior median estimates"</span>, <span class="at">main.title.position=</span><span class="st">"center"</span>,</span>
 <span id="cb48-17"><a href="#cb48-17" aria-hidden="true" tabindex="-1"></a>            <span class="at">panel.labels=</span><span class="fu">c</span>(<span class="st">"Global model"</span>,<span class="st">"Disjoint model"</span>,<span class="st">"1st-order nb"</span>,<span class="st">"2nd-order nb"</span>),</span>
 <span id="cb48-18"><a href="#cb48-18" aria-hidden="true" tabindex="-1"></a>            <span class="at">legend.outside=</span>T, <span class="at">legend.outside.position=</span><span class="st">"right"</span>, <span class="at">legend.frame=</span>F,</span>
@@ -610,7 +619,7 @@ k2          27130.18 306.8484 27437.03 27441.08 52.681430</code></pre>
 <span id="cb49-13"><a href="#cb49-13" aria-hidden="true" tabindex="-1"></a>              <span class="at">title=</span><span class="st">"Prob"</span>, <span class="at">legend.show=</span>T, <span class="at">legend.reverse=</span>T,</span>
 <span id="cb49-14"><a href="#cb49-14" aria-hidden="true" tabindex="-1"></a>              <span class="at">style=</span><span class="st">"fixed"</span>, <span class="at">breaks=</span>values, <span class="at">interval.closure=</span><span class="st">"left"</span>,</span>
 <span id="cb49-15"><a href="#cb49-15" aria-hidden="true" tabindex="-1"></a>              <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"[0-0.1)"</span>,<span class="st">"[0.1-0.2)"</span>,<span class="st">"[0.2-0.8)"</span>,<span class="st">"[0.8-0.9)"</span>,<span class="st">"[0.9-1]"</span>)) <span class="sc">+</span> </span>
-<span id="cb49-16"><a href="#cb49-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_shape</span>(carto.prov) <span class="sc">+</span> <span class="fu">tm_borders</span>(<span class="at">col=</span><span class="st">"gray40"</span>) <span class="sc">+</span> </span>
+<span id="cb49-16"><a href="#cb49-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_shape</span>(carto.CCAA) <span class="sc">+</span> <span class="fu">tm_borders</span>(<span class="at">col=</span><span class="st">"gray40"</span>) <span class="sc">+</span> </span>
 <span id="cb49-17"><a href="#cb49-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_layout</span>(<span class="at">main.title=</span><span class="st">"Posterior exceedence probabilities"</span>, <span class="at">main.title.position=</span><span class="st">"center"</span>,</span>
 <span id="cb49-18"><a href="#cb49-18" aria-hidden="true" tabindex="-1"></a>            <span class="at">panel.labels=</span><span class="fu">c</span>(<span class="st">"Global model"</span>,<span class="st">"Disjoint model"</span>,<span class="st">"1st-order nb"</span>,<span class="st">"2nd-order nb"</span>),</span>
 <span id="cb49-19"><a href="#cb49-19" aria-hidden="true" tabindex="-1"></a>            <span class="at">legend.outside=</span>T, <span class="at">legend.outside.position=</span><span class="st">"right"</span>, <span class="at">legend.frame=</span>F,</span>
@@ -634,12 +643,12 @@ k2          27130.18 306.8484 27437.03 27441.08 52.681430</code></pre>
 <span id="cb50-3"><a href="#cb50-3" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(Data_MultiCancer)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>     ID disease obs        exp       SMR
-1 01001       1   6  6.6147794 0.9070597
-2 01002       1  52 42.6337564 1.2196908
-3 01003       1   8  7.4307781 1.0766033
-4 01004       1   8  6.3549654 1.2588582
+1 01001       1   3  6.6147794 0.4535299
+2 01002       1  41 42.6337564 0.9616793
+3 01003       1   4  7.4307781 0.5383016
+4 01004       1   6  6.3549654 0.9441436
 5 01006       1   0  0.9337634 0.0000000
-6 01008       1   5  3.9404795 1.2688811</code></pre>
+6 01008       1   2  3.9404795 0.5075524</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb52"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> Data_MultiCancer[Data_MultiCancer<span class="sc">$</span>disease<span class="sc">==</span><span class="dv">1</span>,]</span>
 <span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a>data<span class="sc">$</span>X1 <span class="ot">&lt;-</span> Data_MultiCancer[Data_MultiCancer<span class="sc">$</span>disease<span class="sc">==</span><span class="dv">2</span>,<span class="st">"SMR"</span>]</span>
@@ -647,12 +656,12 @@ k2          27130.18 306.8484 27437.03 27441.08 52.681430</code></pre>
 <span id="cb52-4"><a href="#cb52-4" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>     ID disease obs        exp       SMR        X1        X2
-1 01001       1   6  6.6147794 0.9070597 1.6314869 0.7755112
-2 01002       1  52 42.6337564 1.2196908 0.9473858 1.2932300
-3 01003       1   8  7.4307781 1.0766033 1.8422492 1.3203218
-4 01004       1   8  6.3549654 1.2588582 0.3076717 0.7681720
-5 01006       1   0  0.9337634 0.0000000 0.0000000 5.1435755
-6 01008       1   5  3.9404795 1.2688811 1.0051846 1.2496763</code></pre>
+1 01001       1   3  6.6147794 0.4535299 1.3051895 0.7755112
+2 01002       1  41 42.6337564 0.9616793 1.5158172 0.7053982
+3 01003       1   4  7.4307781 0.5383016 1.0527138 1.3203218
+4 01004       1   6  6.3549654 0.9441436 0.6153434 0.7681720
+5 01006       1   0  0.9337634 0.0000000 0.0000000 0.0000000
+6 01008       1   2  3.9404795 0.5075524 0.0000000 1.2496763</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb54"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a><span class="do">## Define the sf object ##</span></span>
 <span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a>Carto_SpainMUN<span class="sc">$</span>obs <span class="ot">&lt;-</span> <span class="cn">NULL</span></span>
@@ -675,19 +684,19 @@ Projected CRS: ETRS89 / UTM zone 30N
 5 01006                                 Arminon 10559721 [m^2] 17847.35 [m]
 6 01008 Arrazua-Ubarrundia (San Martin de Ania) 57502811 [m^2] 64968.81 [m]
       region    Global        k0        k1        k2 disease obs        exp
-1 Pais Vasco 0.6978446 0.6703088 0.7527308 0.7508028       1   6  6.6147794
-2 Pais Vasco 0.8803894 0.8694077 0.8576663 0.8654468       1  52 42.6337564
-3 Pais Vasco 0.8397482 0.8311717 0.8486363 0.8489246       1   8  7.4307781
-4 Pais Vasco 0.7516241 0.7511987 0.7720012 0.7331037       1   8  6.3549654
-5 Pais Vasco 0.6473510 0.6001158 0.6230462 0.6358718       1   0  0.9337634
-6 Pais Vasco 0.7165259 0.7041837 0.7359355 0.7344448       1   5  3.9404795
+1 Pais Vasco 0.6978445 0.6703088 0.7527308 0.7508028       1   3  6.6147794
+2 Pais Vasco 0.8803894 0.8694077 0.8576663 0.8654468       1  41 42.6337564
+3 Pais Vasco 0.8397482 0.8311717 0.8486364 0.8489246       1   4  7.4307781
+4 Pais Vasco 0.7516240 0.7511987 0.7720013 0.7331037       1   6  6.3549654
+5 Pais Vasco 0.6473510 0.6001158 0.6230463 0.6358718       1   0  0.9337634
+6 Pais Vasco 0.7165259 0.7041837 0.7359355 0.7344448       1   2  3.9404795
         SMR        X1        X2                       geometry
-1 0.9070597 1.6314869 0.7755112 MULTIPOLYGON (((538259 4737...
-2 1.2196908 0.9473858 1.2932300 MULTIPOLYGON (((503520 4760...
-3 1.0766033 1.8422492 1.3203218 MULTIPOLYGON (((533286 4759...
-4 1.2588582 0.3076717 0.7681720 MULTIPOLYGON (((491260 4776...
-5 0.0000000 0.0000000 5.1435755 MULTIPOLYGON (((509851 4727...
-6 1.2688811 1.0051846 1.2496763 MULTIPOLYGON (((534678 4746...</code></pre>
+1 0.4535299 1.3051895 0.7755112 MULTIPOLYGON (((538259 4737...
+2 0.9616793 1.5158172 0.7053982 MULTIPOLYGON (((503520 4760...
+3 0.5383016 1.0527138 1.3203218 MULTIPOLYGON (((533286 4759...
+4 0.9441436 0.6153434 0.7681720 MULTIPOLYGON (((491260 4776...
+5 0.0000000 0.0000000 0.0000000 MULTIPOLYGON (((509851 4727...
+6 0.5075524 0.0000000 1.2496763 MULTIPOLYGON (((534678 4746...</code></pre>
 </div>
 </div>
 <p>A character vector with the covariate names or the design matrix of the fixed effects can be included through the <code>X=...</code> argument of the <code>CAR_INLA()</code> function:</p>
@@ -730,14 +739,14 @@ STEP 3: Merging the results</code></pre>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb60"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a>iCAR.Global<span class="sc">$</span>summary.fixed</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>                   mean          sd  0.025quant    0.5quant  0.975quant
-(Intercept) -0.19474018 0.006353776 -0.20721442 -0.19473492 -0.18229583
-X1           0.09497815 0.010069696  0.07520635  0.09498723  0.11469828
-X2           0.04613082 0.009917748  0.02667390  0.04613398  0.06556975
-                   mode          kld
-(Intercept) -0.19473490 2.218102e-10
-X1           0.09498727 2.541965e-10
-X2           0.04613399 7.389832e-11</code></pre>
+<pre><code>                    mean          sd   0.025quant     0.5quant  0.975quant
+(Intercept) -0.143431121 0.006025473 -0.155278873 -0.143419614 -0.13164882
+X1           0.021959574 0.009970845  0.002396736  0.021963389  0.04150069
+X2           0.001719766 0.010214449 -0.018316430  0.001722059  0.02174290
+                    mode          kld
+(Intercept) -0.143419534 1.017709e-09
+X1           0.021963408 8.770430e-11
+X2           0.001722071 6.288758e-11</code></pre>
 </div>
 </div>
 <p>In partition models, local estimates of the fixed effects coefficients are obtained in each province:</p>
@@ -745,49 +754,49 @@ X2           0.04613399 7.389832e-11</code></pre>
 <div class="sourceCode cell-code" id="cb62"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a>x1 <span class="ot">&lt;-</span> <span class="fu">grep</span>(<span class="st">"^X1"</span>,<span class="fu">rownames</span>(iCAR.k1<span class="sc">$</span>summary.fixed.partition))</span>
 <span id="cb62-2"><a href="#cb62-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(iCAR.k1<span class="sc">$</span>summary.fixed.partition[x1,])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>            mean         sd   0.025quant   0.5quant 0.975quant       mode
-X1.01 0.26748676 0.03769378  0.193228552 0.26760480 0.34107331 0.26760544
-X1.02 0.08824309 0.03460607  0.020212066 0.08830103 0.15594399 0.08830121
-X1.03 0.23356386 0.09902318  0.036933229 0.23436145 0.42565039 0.23436113
-X1.04 0.15858369 0.07991910  0.001341205 0.15874274 0.31492464 0.15874432
-X1.05 0.07884649 0.02636996  0.026957141 0.07890853 0.13038281 0.07890886
-X1.06 0.02547119 0.01634976 -0.006647837 0.02549146 0.05747481 0.02549157
+<pre><code>              mean         sd    0.025quant     0.5quant 0.975quant        mode
+X1.01  0.035030880 0.03127741 -0.0265000457  0.035098908 0.09617459  0.03509924
+X1.02  0.062384460 0.03188713 -0.0001847686  0.062397567 0.12487918  0.06239766
+X1.03 -0.147491392 0.08699742 -0.3208914664 -0.146539392 0.02048611 -0.14653764
+X1.04 -0.039189398 0.07361260 -0.1841407098 -0.039029499 0.10483569 -0.03903387
+X1.05  0.010311903 0.02926385 -0.0471797744  0.010348424 0.06759555  0.01034856
+X1.06 -0.001755338 0.01857518 -0.0381982595 -0.001749028 0.03465168 -0.00174899
                kld
-X1.01 2.506756e-09
-X1.02 7.263205e-10
-X1.03 1.719057e-08
-X1.04 1.310984e-09
-X1.05 1.430770e-09
-X1.06 4.285458e-10</code></pre>
+X1.01 1.221077e-09
+X1.02 5.736801e-11
+X1.03 3.005854e-08
+X1.04 2.905260e-09
+X1.05 4.148953e-10
+X1.06 6.800801e-11</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb64"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a>x2 <span class="ot">&lt;-</span> <span class="fu">grep</span>(<span class="st">"^X2"</span>,<span class="fu">rownames</span>(iCAR.k1<span class="sc">$</span>summary.fixed.partition))</span>
 <span id="cb64-2"><a href="#cb64-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(iCAR.k1<span class="sc">$</span>summary.fixed.partition[x2,])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>            mean         sd   0.025quant   0.5quant 0.975quant       mode
-X2.01 0.09497021 0.03742352  0.021471148 0.09500785 0.16825509 0.09500805
-X2.02 0.05538788 0.03022010 -0.003886761 0.05539209 0.11463851 0.05539211
-X2.03 0.08499412 0.11183566 -0.136145113 0.08558463 0.30276864 0.08558481
-X2.04 0.07763887 0.06457107 -0.049569383 0.07782537 0.20378476 0.07782572
-X2.05 0.01501303 0.02692691 -0.037865383 0.01503886 0.06774441 0.01503899
-X2.06 0.01227841 0.01705844 -0.021184959 0.01228283 0.04571663 0.01228285
+<pre><code>              mean         sd  0.025quant     0.5quant  0.975quant         mode
+X2.01  0.007483662 0.03192414 -0.05517454  0.007502554 0.070034332  0.007502651
+X2.02 -0.063209201 0.03579666 -0.13345289 -0.063193310 0.006943975 -0.063193248
+X2.03  0.063872615 0.07846803 -0.09169416  0.064418340 0.216323431  0.064416065
+X2.04 -0.081429751 0.08111565 -0.24071885 -0.081386609 0.077617646 -0.081385473
+X2.05 -0.006772546 0.02773751 -0.06123464 -0.006748671 0.047553712 -0.006748531
+X2.06  0.007999922 0.01719930 -0.02572534  0.007999391 0.041728210  0.007999390
                kld
-X2.01 2.617489e-10
-X2.02 2.059474e-11
-X2.03 7.706022e-09
-X2.04 2.381467e-09
-X2.05 2.496569e-10
-X2.06 5.421563e-11</code></pre>
+X2.01 1.049015e-10
+X2.02 6.659649e-11
+X2.03 1.324993e-08
+X2.04 7.817714e-10
+X2.05 2.057702e-10
+X2.06 4.168722e-11</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb66"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a><span class="do">## Maps with posterior median estimates at each province</span></span>
-<span id="cb66-2"><a href="#cb66-2" aria-hidden="true" tabindex="-1"></a>carto.prov <span class="ot">&lt;-</span> <span class="fu">aggregate</span>(Carto_SpainMUN[,<span class="st">"geometry"</span>],<span class="fu">list</span>(<span class="at">ID.group=</span><span class="fu">st_drop_geometry</span>(Carto_SpainMUN)<span class="sc">$</span>region), head)</span>
+<span id="cb66-2"><a href="#cb66-2" aria-hidden="true" tabindex="-1"></a>carto.CCAA <span class="ot">&lt;-</span> <span class="fu">aggregate</span>(Carto_SpainMUN[,<span class="st">"geometry"</span>],<span class="fu">list</span>(<span class="at">ID.group=</span><span class="fu">st_drop_geometry</span>(Carto_SpainMUN)<span class="sc">$</span>region), head)</span>
 <span id="cb66-3"><a href="#cb66-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb66-4"><a href="#cb66-4" aria-hidden="true" tabindex="-1"></a>carto.prov<span class="sc">$</span>X1 <span class="ot">&lt;-</span> iCAR.k1<span class="sc">$</span>summary.fixed.partition<span class="sc">$</span><span class="st">`</span><span class="at">0.5quant</span><span class="st">`</span>[x1]</span>
-<span id="cb66-5"><a href="#cb66-5" aria-hidden="true" tabindex="-1"></a>carto.prov<span class="sc">$</span>X2 <span class="ot">&lt;-</span> iCAR.k1<span class="sc">$</span>summary.fixed.partition<span class="sc">$</span><span class="st">`</span><span class="at">0.5quant</span><span class="st">`</span>[x2]</span>
+<span id="cb66-4"><a href="#cb66-4" aria-hidden="true" tabindex="-1"></a>carto.CCAA<span class="sc">$</span>X1 <span class="ot">&lt;-</span> iCAR.k1<span class="sc">$</span>summary.fixed.partition<span class="sc">$</span><span class="st">`</span><span class="at">0.5quant</span><span class="st">`</span>[x1]</span>
+<span id="cb66-5"><a href="#cb66-5" aria-hidden="true" tabindex="-1"></a>carto.CCAA<span class="sc">$</span>X2 <span class="ot">&lt;-</span> iCAR.k1<span class="sc">$</span>summary.fixed.partition<span class="sc">$</span><span class="st">`</span><span class="at">0.5quant</span><span class="st">`</span>[x2]</span>
 <span id="cb66-6"><a href="#cb66-6" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb66-7"><a href="#cb66-7" aria-hidden="true" tabindex="-1"></a>paleta <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fu">brewer.pal</span>(<span class="dv">3</span>,<span class="st">"Reds"</span>)[<span class="dv">3</span><span class="sc">:</span><span class="dv">2</span>],<span class="fu">brewer.pal</span>(<span class="dv">5</span>,<span class="st">"Blues"</span>)[<span class="sc">-</span><span class="dv">1</span>])</span>
 <span id="cb66-8"><a href="#cb66-8" aria-hidden="true" tabindex="-1"></a>values <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="sc">-</span><span class="fl">0.2</span>,<span class="fl">0.4</span>,<span class="fl">0.1</span>)</span>
 <span id="cb66-9"><a href="#cb66-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb66-10"><a href="#cb66-10" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(carto.prov) <span class="sc">+</span> </span>
+<span id="cb66-10"><a href="#cb66-10" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(carto.CCAA) <span class="sc">+</span> </span>
 <span id="cb66-11"><a href="#cb66-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_polygons</span>(<span class="at">col=</span><span class="fu">c</span>(<span class="st">"X1"</span>,<span class="st">"X2"</span>), <span class="at">palette=</span>paleta,</span>
 <span id="cb66-12"><a href="#cb66-12" aria-hidden="true" tabindex="-1"></a>              <span class="at">title=</span><span class="st">""</span>, <span class="at">legend.show=</span>T, <span class="at">legend.reverse=</span>T,</span>
 <span id="cb66-13"><a href="#cb66-13" aria-hidden="true" tabindex="-1"></a>              <span class="at">style=</span><span class="st">"fixed"</span>, <span class="at">breaks=</span>values, <span class="at">interval.closure=</span><span class="st">"left"</span>) <span class="sc">+</span> </span>
@@ -796,28 +805,25 @@ X2.06 5.421563e-11</code></pre>
 <span id="cb66-16"><a href="#cb66-16" aria-hidden="true" tabindex="-1"></a>            <span class="at">panel.labels=</span><span class="fu">c</span>(<span class="st">"X1 covariate"</span>,<span class="st">"X2 covariate"</span>),</span>
 <span id="cb66-17"><a href="#cb66-17" aria-hidden="true" tabindex="-1"></a>            <span class="at">legend.outside.size=</span><span class="fl">0.2</span>, <span class="at">outer.margins=</span><span class="fu">c</span>(<span class="fl">0.02</span>,<span class="fl">0.01</span>,<span class="fl">0.02</span>,<span class="fl">0.01</span>)) <span class="sc">+</span> </span>
 <span id="cb66-18"><a href="#cb66-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_facets</span>(<span class="at">nrow=</span><span class="dv">1</span>, <span class="at">ncol=</span><span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Variable(s) "X2" contains positive and negative values, so midpoint is set to 0. Set midpoint = NA to show the full spectrum of the color palette.</code></pre>
-</div>
 <div class="cell-output-display">
 <p><img src="Section2_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
 <p>Global estimates can be also computed by combining the marginal estimates in each partition by applying the CMC algorithm:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb68"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb68-1"><a href="#cb68-1" aria-hidden="true" tabindex="-1"></a><span class="fu">rbind</span>(<span class="at">Global=</span>iCAR.Global<span class="sc">$</span>summary.fixed[<span class="st">"X1"</span>,<span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>],</span>
-<span id="cb68-2"><a href="#cb68-2" aria-hidden="true" tabindex="-1"></a>      <span class="st">`</span><span class="at">k1-CMC</span><span class="st">`</span><span class="ot">=</span>iCAR.k1<span class="sc">$</span>summary.fixed[<span class="st">"X1"</span>,<span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb67"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb67-1"><a href="#cb67-1" aria-hidden="true" tabindex="-1"></a><span class="fu">rbind</span>(<span class="at">Global=</span>iCAR.Global<span class="sc">$</span>summary.fixed[<span class="st">"X1"</span>,<span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>],</span>
+<span id="cb67-2"><a href="#cb67-2" aria-hidden="true" tabindex="-1"></a>      <span class="st">`</span><span class="at">k1-CMC</span><span class="st">`</span><span class="ot">=</span>iCAR.k1<span class="sc">$</span>summary.fixed[<span class="st">"X1"</span>,<span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>             mean          sd 0.025quant   0.5quant 0.975quant
-Global 0.09497815 0.010069696 0.07520635 0.09498723  0.1146983
-k1-CMC 0.09666777 0.009752243 0.07768400 0.09660063  0.1158392</code></pre>
+<pre><code>             mean          sd   0.025quant   0.5quant 0.975quant
+Global 0.02195957 0.009970845 0.0023967359 0.02196339 0.04150069
+k1-CMC 0.01885740 0.009481415 0.0002116623 0.01886906 0.03759546</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb70"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb70-1"><a href="#cb70-1" aria-hidden="true" tabindex="-1"></a><span class="fu">rbind</span>(<span class="at">Global=</span>iCAR.Global<span class="sc">$</span>summary.fixed[<span class="st">"X2"</span>,<span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>],</span>
-<span id="cb70-2"><a href="#cb70-2" aria-hidden="true" tabindex="-1"></a>      <span class="st">`</span><span class="at">k1-CMC</span><span class="st">`</span><span class="ot">=</span>iCAR.k1<span class="sc">$</span>summary.fixed[<span class="st">"X2"</span>,<span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb69"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb69-1"><a href="#cb69-1" aria-hidden="true" tabindex="-1"></a><span class="fu">rbind</span>(<span class="at">Global=</span>iCAR.Global<span class="sc">$</span>summary.fixed[<span class="st">"X2"</span>,<span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>],</span>
+<span id="cb69-2"><a href="#cb69-2" aria-hidden="true" tabindex="-1"></a>      <span class="st">`</span><span class="at">k1-CMC</span><span class="st">`</span><span class="ot">=</span>iCAR.k1<span class="sc">$</span>summary.fixed[<span class="st">"X2"</span>,<span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>             mean          sd 0.025quant   0.5quant 0.975quant
-Global 0.04613082 0.009917748  0.0266739 0.04613398 0.06556975
-k1-CMC 0.04485920 0.009585022  0.0262725 0.04480702 0.06377817</code></pre>
+<pre><code>               mean         sd  0.025quant     0.5quant 0.975quant
+Global  0.001719766 0.01021445 -0.01831643  0.001722059 0.02174290
+k1-CMC -0.005810073 0.00971289 -0.02501863 -0.005874933 0.01318879</code></pre>
 </div>
 </div>
 <div class="cell">

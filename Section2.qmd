@@ -12,7 +12,7 @@ format:
 knitr::opts_chunk$set(echo = TRUE)  
 ```
 
-This practice focuses on how to use the `bigDM` package to fit the scalable spatial model’s proposals described in [Orozco-Acosta et al. (2021)](doi:10.1016/j.spasta.2021.100496) using simulated mortality data from the municipalities of continental Spain.
+This practice focuses on how to use the `bigDM` package to fit the scalable spatial model’s proposals described in [Orozco-Acosta et al. (2021)](https://doi.org/10.1016/j.spasta.2021.100496) using simulated mortality data from the municipalities of continental Spain.
 
 ## The `CAR_INLA()` function
 
@@ -34,6 +34,8 @@ What follows is a brief description of the main input arguments and functionalit
 -   **`carto`**: object of class `sf` or `SpatialPolygonsDataFrame` that contains the data of analysis and its associated cartography file. This object must contain at least the target variables of interest specified in the arguments `ID.area`, `O` and `E`.
 
 -   **`ID.area`**: character; name of the variable that contains the IDs of spatial areal units.
+
+-   **`ID.group`**: character; name of the variable that contains the IDs of the spatial partition (grouping variable). Only required if `model="partition"`.
 
 -   **`O`**: character; name of the variable that contains the observed number of disease cases for each areal units.
 
@@ -161,7 +163,7 @@ plot(carto.k0$`Castilla y Leon`$geometry, col="lightgrey", add=TRUE)
 library(RColorBrewer)
 
 ## Carto object of the Spanish provinces 
-carto.prov <- aggregate(Carto_SpainMUN[,"geometry"],list(ID.group=st_drop_geometry(Carto_SpainMUN)$region), head)
+carto.CCAA <- aggregate(Carto_SpainMUN[,"geometry"],list(ID.group=st_drop_geometry(Carto_SpainMUN)$region), head)
 
 ## Model selection criteria
 MODELS <- list(Global=iCAR.Global, k0=iCAR.k0, k1=iCAR.k1, k2=iCAR.k2)
@@ -179,9 +181,9 @@ values <- c(-Inf,log(c(0.83,0.91,0.95,1,1.05,1.10,1.20)),Inf)
 tmap_mode("plot")
 Map.risk <- tm_shape(Carto_SpainMUN) + 
   tm_polygons(col=c("Global","k0","k1","k2"), palette=paleta, border.alpha=0,
-              title="Risk", legend.show=T, legend.reverse=T,
+              title="log-risks", legend.show=T, legend.reverse=T,
               style="fixed", breaks=values, interval.closure="left") + 
-  tm_shape(carto.prov) + tm_borders(col="gray40") + 
+  tm_shape(carto.CCAA) + tm_borders(col="gray40") + 
   tm_layout(main.title="Posterior median estimates", main.title.position="center",
             panel.labels=c("Global model","Disjoint model","1st-order nb","2nd-order nb"),
             legend.outside=T, legend.outside.position="right", legend.frame=F,
@@ -205,7 +207,7 @@ Map.prob <- tm_shape(Carto_SpainMUN) +
               title="Prob", legend.show=T, legend.reverse=T,
               style="fixed", breaks=values, interval.closure="left",
               labels=c("[0-0.1)","[0.1-0.2)","[0.2-0.8)","[0.8-0.9)","[0.9-1]")) + 
-  tm_shape(carto.prov) + tm_borders(col="gray40") + 
+  tm_shape(carto.CCAA) + tm_borders(col="gray40") + 
   tm_layout(main.title="Posterior exceedence probabilities", main.title.position="center",
             panel.labels=c("Global model","Disjoint model","1st-order nb","2nd-order nb"),
             legend.outside=T, legend.outside.position="right", legend.frame=F,
@@ -214,7 +216,6 @@ Map.prob <- tm_shape(Carto_SpainMUN) +
 
 print(Map.prob)
 ```
-
 
 ## Example 2: ecological regression model
 
@@ -258,23 +259,23 @@ Summary statistics of the posterior marginal estimates for the global model's fi
 iCAR.Global$summary.fixed
 ```
 In partition models, local estimates of the fixed effects coefficients are obtained in each province: 
-```{r}
+```{r, message=FALSE, warning=FALSE}
 x1 <- grep("^X1",rownames(iCAR.k1$summary.fixed.partition))
-head(iCAR.k1$summary.fixed.partition[x1,])
+head(iCAR.k1$summary.fixed.partition[x1,1:6])
 
 x2 <- grep("^X2",rownames(iCAR.k1$summary.fixed.partition))
-head(iCAR.k1$summary.fixed.partition[x2,])
+head(iCAR.k1$summary.fixed.partition[x2,1:6])
 
 ## Maps with posterior median estimates at each province
-carto.prov <- aggregate(Carto_SpainMUN[,"geometry"],list(ID.group=st_drop_geometry(Carto_SpainMUN)$region), head)
+carto.CCAA <- aggregate(Carto_SpainMUN[,"geometry"],list(ID.group=st_drop_geometry(Carto_SpainMUN)$region), head)
 
-carto.prov$X1 <- iCAR.k1$summary.fixed.partition$`0.5quant`[x1]
-carto.prov$X2 <- iCAR.k1$summary.fixed.partition$`0.5quant`[x2]
+carto.CCAA$X1 <- iCAR.k1$summary.fixed.partition$`0.5quant`[x1]
+carto.CCAA$X2 <- iCAR.k1$summary.fixed.partition$`0.5quant`[x2]
 
-paleta <- c(brewer.pal(3,"Reds")[3:2],brewer.pal(5,"Blues")[-1])
-values <- seq(-0.2,0.4,0.1)
+paleta <- c(brewer.pal(3,"Reds")[3:2],brewer.pal(3,"Blues")[2:3])
+values <- seq(-0.2,0.2,0.1)
 
-tm_shape(carto.prov) + 
+tm_shape(carto.CCAA) + 
   tm_polygons(col=c("X1","X2"), palette=paleta,
               title="", legend.show=T, legend.reverse=T,
               style="fixed", breaks=values, interval.closure="left") + 
@@ -293,34 +294,30 @@ rbind(Global=iCAR.Global$summary.fixed["X2",1:5],
       `k1-CMC`=iCAR.k1$summary.fixed["X2",1:5])
 ```
 
-```{r, echo=FALSE}
-par(mfrow=c(1,2), pty="s")
+```{r, echo=FALSE, fig.width=10}
+par(mfrow=c(1,2), pty="m")
 
 ## X1 covariate ##
 plot(inla.smarginal(iCAR.Global$marginals.fixed$`X1`), type="l", 
      xlab="", ylab="", main="X1 covariate",
-     col="blue", lwd=2, xlim=c(-0.2,0.4),)
+     col="blue", lwd=2, xlim=c(-0.4,0.4))
 
 for(i in x1){
   lines(inla.smarginal(iCAR.k1$marginals.fixed.partition[[i]]), lty=2)
 }
-
-lines(inla.smarginal(iCAR.k1$marginals.fixed$`X1`), col="red")
-
-legend("topleft", legend=c("Global model","CMC estimate"),
+lines(inla.smarginal(iCAR.k1$marginals.fixed$`X1`), col="red", lwd=2)
+legend("topright", legend=c("Global model","CMC estimate"),
        lwd=2, bty="n", col=c("blue","red"))
 
 ## X2 covariate ##
 plot(inla.smarginal(iCAR.Global$marginals.fixed$`X2`), type="l", 
      xlab="", ylab="", main="X2 covariate",
-     col="blue", lwd=2, xlim=c(-0.2,0.4),)
+     col="blue", lwd=2, xlim=c(-0.4,0.4))
 
 for(i in x2){
   lines(inla.smarginal(iCAR.k1$marginals.fixed.partition[[i]]), lty=2)
 }
-
-lines(inla.smarginal(iCAR.k1$marginals.fixed$`X2`), col="red")
-
+lines(inla.smarginal(iCAR.k1$marginals.fixed$`X2`), col="red", lwd=2)
 legend("topright", legend=c("Global model","CMC estimate"),
        lwd=2, bty="n", col=c("blue","red"))
 ```

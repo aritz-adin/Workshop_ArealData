@@ -1,0 +1,398 @@
+---
+title: "Section 3: M-models for spatial multivariate disease mapping"
+author: "Aritz Adin"
+date: "2024-06-27"
+date-format: medium
+format:
+  html:
+    toc: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)  
+```
+
+In the previous practice, we show how to fit spatial Poisson mixed models for high-dimensional areal data using the R package `bigDM`. Here, we describe how to use this package to fit order-free multivariate scalable Bayesian models to smooth mortality (or incidence) risks of several diseases simultaneously [Vicente et al, (2023)](https://doi.org/10.1007/s11222-023-10263-x).
+
+## The `MCAR_INLA()` function
+
+This function allows fitting (scalable) spatial multivariate Poisson mixed models to areal count data, where dependence between spatial patterns of the diseases is addressed through the use of M-model (Botella-Rocamora et al., 2015).
+
+Specifically, the linear predictor is modelled as
+
+```{=tex}
+\begin{equation}
+\log r_{ij} = \alpha_j + \theta_{ij}, \quad \mbox{for} \quad i=1,\ldots,I; \quad j=1,\ldots,J
+\end{equation}
+```
+where $\alpha_j$ is a disease-specific intercept and $\theta_{ij}$ is the spatial main effect of area $i$ for the $j$-th disease.
+
+We rearrange the spatial effects into the matrix $\Theta=\lbrace \theta_{ij}: \, i=1, \ldots, n; \, j=1, \ldots, J \rbrace$ to better comprehend the dependence structure. The main advantage of the multivariate modelling is that dependence between the spatial patterns of the different diseases can be included in the model, so that latent associations between diseases can help to discover potential risk factors related to the phenomena under study. These unknown connections can be crucial to a better understanding of complex diseases such as cancer.
+
+The potential association between the spatial patterns of the different diseases are included in the model considering the decomposition of $\Theta$ as
+
+```{=tex}
+\begin{equation}
+\Theta = \Phi M,
+\end{equation}
+```
+where $\Phi$ and $M$ deal with dependency within-diseases and between-diseases, respectively. In the following, we briefly describe the two components of the M-model.
+
+The matrix $\Phi$ is a matrix of order $n \times K$ and it is composed of stochastically independent columns that are distributed following a spatially correlated distribution. Usually, as many spatial distributions as diseases are considered, that is, $K=J$. Several CAR prior distributions can be specified to deal with spatial dependence within-diseases, such as the intrinsic CAR prior, the Leroux CAR prior, and the proper CAR prior distribution.
+
+On the other hand, $M$ is a $K \times J$ nonsingular but arbitrary matrix and it is responsible for inducing dependence between the different columns of $\Theta$, i.e., for inducing correlation between the spatial patterns of the diseases. Note that, assigning $N(0,\sigma)$ priors to the cells of $M$ is equivalent to assigning a Wishart prior to $M'M$, i.e., $M'M \sim Wishart(J, \sigma^{2} \mathbf{I}_J)$.
+
+Once the between-diseases dependencies are incorporated into the model, the resulting prior distributions for $\mbox{vec} \left( \Theta \right)$ with Gaussian kernel has a precision matrix given by
+
+```{=tex}
+\begin{equation}
+\Omega_{\mbox{vec}(\Theta)} =
+    \left(M^{-1} \otimes I_n \right) \:
+    \mbox{Blockdiag}(\Omega_{1},\ldots,\Omega_{J}) \:
+    \left(M^{-1} \otimes I_n \right)'.
+\end{equation}
+```
+Recall that this precision matrix accounts for both within and between-disease dependencies. If $\Omega_{1} = \ldots = \Omega_{J}= \Omega_{w}$, the covariance structure is separable and can be expressed as $\Omega_{\mbox{vec}(\Theta)}^{-1}=\Omega_{b}^{-1} \otimes \Omega_{w}^{-1}$, where $\Omega_{b}^{-1}=M'M$ and $\Omega_{w}^{-1}$ are the between- and within-disease covariance matrices, respectively.
+
+**Notes:**
+
+1.  As for the spatial prior distributions for univariate models (single disease), appropriate sum-to-zero constraints must be imposed to address identifiability issues with the disease-specific intercepts.
+
+2.  The M-model implementation of these models using `R-INLA` requires the use of at least $J \times (J+1)/2$ hyperparameters. So, the results must be carefully checked, specially when using the Leroux or proper CAR priors.
+
+### Main input arguments
+
+What follows is a brief description of the main input arguments and functionalities of the `MCAR_INLA()` function:
+
+-   **`carto`**: object of class `sf` or `SpatialPolygonsDataFrame`. This object must contain at least the variable with the identifiers of the spatial areal units specified in the argument `ID.area`.
+
+-   **`data`**: object of class `data.frema` that must contain the target variables of interest specified in the arguments `ID.area`, `ID.disease`, `O` and `E`.
+
+-   **`ID.area`**: character; name of the variable that contains the IDs of spatial areal units.
+
+-   **`ID.disease`**: character; name of the variable that contains the IDs of the diseases.
+
+-   **`ID.group`**: character; name of the variable that contains the IDs of the spatial partition (grouping variable). Only required if `model="partition"`.
+
+-   **`O`**: character; name of the variable that contains the observed number of cases for each areal unit and disease.
+
+-   **`E`**: character; name of the variable that contains either the expected number of cases for each areal unit and disease.
+
+-   **`W`**: optional argument with the binary adjacency matrix of the spatial areal units. If `NULL` (default), this object is computed from the `carto` argument (two areas are considered as neighbours if they share a common border).
+
+-   **`prior`**: one of either `"intrinsic"` (default), `"Leroux"`, `"proper"` or `"iid"`, which specifies the prior distribution considered for the spatial random effects.
+
+-   **`model`**: one of either `"global"` or `"partition"` (default), which specifies the Global model or one of the scalable model proposal’s (*Disjoint model* and *k-order neighbourhood model*, respectively).
+
+-   **`k`**: numeric value with the neighbourhood order used for the partition model. Usually k=2 or 3 is enough to get good results. If `k=0` (default) the Disjoint model is considered. Only required if `model="partition"`.
+
+-   **`compute.DIC`**: logical value; if `TRUE` (default) then approximate values of the Deviance Information Criterion (DIC) and Watanabe-Akaike Information Criterion (WAIC) are computed.
+
+-   **`compute.fitted.values`**: logical value (default `FALSE`); if `TRUE` transforms the posterior marginal distribution of the linear predictor to the exponential scale (risks or rates).
+
+-   **`inla.mode`**: one of either `"classic"` (default) or `"compact"`, which specifies the approximation method used by INLA. See `help(inla)` for further details.
+
+For further details, please refer to the [reference manual](https://cran.r-project.org/web/packages/bigDM/bigDM.pdf) and the [vignettes](https://github.com/spatialstatisticsupna/bigDM/tree/master?tab=readme-ov-file#basic-use) accompanying this package.
+
+## Example: joint analysis of lung, colorectal and stomach cancer mortality
+
+Simulated data for lung, colorectal and stomach cancer mortality in the 7907 municipalities of mainland Spain (excluding Baleareas and Canary Islands, and the autonomous cities of Ceuta and Melilla) included in the `Data_MultiCancer` object will be used for illustration.
+
+```{r}
+library(bigDM)
+library(INLA)
+library(sf)
+library(tmap)
+
+data(Data_MultiCancer)
+str(Data_MultiCancer)
+```
+
+The data has a common identification variable (`ID`) to link it with the `Carto_SpainMUN` object.
+
+```{r}
+data("Carto_SpainMUN")
+Carto_SpainMUN$obs <- NULL
+Carto_SpainMUN$exp <- NULL
+Carto_SpainMUN$SMR <- NULL
+
+head(Carto_SpainMUN)
+```
+
+### Global model
+
+The Global model with an iCAR prior for the spatial random effects is fitted using the `MCAR_INLA()` function as
+
+```{r}
+iCAR.Global <- MCAR_INLA(carto=Carto_SpainMUN, data=Data_MultiCancer,
+                         ID.area="ID", ID.disease="disease", O="obs", E="exp",
+                         model="global", prior="intrinsic", inla.mode="compact")
+summary(iCAR.Global)
+```
+
+#### Posterior estimates of between-disease correlations and variance parameters
+
+In addition to enlarge the effective sample size and improving smoothing by borrowing information from the different responses, one of the main advantages of multivariate disease mapping models is that they take into account correlations between the spatial patterns of the different diseases ${\rho}=(\rho_{12},\rho_{13},\rho_{23})^{'}$, that is, they reveal connections between diseases. In addition, it also provides the diagonal elements of the between-disease covariance matrix ($\sigma^2_j$), hereafter referred to as variance parameters, which control the amount of smoothing within diseases.
+
+The marginal posterior estimates of these parameters are computed by first sampling from the approximated joint posterior distribution of the model hyperparameters using the `inla.hyperpar.sample()` function. Then, kernel density estimates of the derived samples for the elements of the correlation matrix of the random effects are computed. The results, including summary statistics and posterior marginal densities, are contained in the `summary.cor`/`summary.var` and `marginals.cor`/`marginals.var` elements of the `inla` model
+
+```{r}
+## Posterior estimates of between-disease correlations ##
+iCAR.Global$summary.cor
+
+## Posterior estimates of variance parameters ##
+iCAR.Global$summary.var
+```
+
+### Partition models
+
+Again, we propose to divide the data into the $D=15$ Autonomous Regions of Spain (`region` variable of the `Carto_SpainMUN` object). The *disjoint* and *k-order neighbourhood models* with an iCAR prior distribution are fitted using the `MCAR_INLA()` function as:
+
+```{r}
+parallel::detectCores()
+
+iCAR.k0 <- MCAR_INLA(carto=Carto_SpainMUN, data=Data_MultiCancer,
+                     ID.area="ID", ID.disease="disease", O="obs", E="exp",
+                     model="partition", k=0, ID.group="region",
+                     prior="intrinsic", inla.mode="compact",
+                     plan="cluster", workers=rep("localhost",4))
+
+iCAR.k1 <- MCAR_INLA(carto=Carto_SpainMUN, data=Data_MultiCancer,
+                     ID.area="ID", ID.disease="disease", O="obs", E="exp",
+                     model="partition", k=1, ID.group="region",
+                     prior="intrinsic", inla.mode="compact",
+                     plan="cluster", workers=rep("localhost",4))
+```
+
+### Compare the results
+
+```{r, message=FALSE, warning=FALSE, fig.width=10}
+library(RColorBrewer)
+
+## Carto object of the Spanish provinces 
+carto.CCAA <- aggregate(Carto_SpainMUN[,"geometry"],list(ID.group=st_drop_geometry(Carto_SpainMUN)$region), head)
+
+## Model selection criteria
+compare.DIC <- function(x){
+  data.frame(mean.deviance=x$dic$mean.deviance, p.eff=x$dic$p.eff,
+             DIC=x$dic$dic, WAIC=x$waic$waic,
+             time=x$cpu.used["Total"])
+}
+MODELS <- list(Global=iCAR.Global, k0=iCAR.k0, k1=iCAR.k1)
+do.call(rbind,lapply(MODELS, compare.DIC))
+
+## Maps with posterior median estimates of log-risks
+carto <- Carto_SpainMUN
+S <- nrow(carto)
+J <- length(unique(Data_MultiCancer$disease))
+
+logRisk.Global <- matrix(iCAR.Global$summary.linear.predictor$`0.5quant`,S,J,byrow=F)
+carto$Global.disease1 <- logRisk.Global[,1]
+carto$Global.disease2 <- logRisk.Global[,2]
+carto$Global.disease3 <- logRisk.Global[,3]
+
+logRisk.k0 <- matrix(iCAR.k0$summary.linear.predictor$`0.5quant`,S,J,byrow=F)
+carto$k0.disease1 <- logRisk.k0[,1]
+carto$k0.disease2 <- logRisk.k0[,2]
+carto$k0.disease3 <- logRisk.k0[,3]
+
+logRisk.k1 <- matrix(iCAR.k1$summary.linear.predictor$`0.5quant`,S,J,byrow=F)
+carto$k1.disease1 <- logRisk.k1[,1]
+carto$k1.disease2 <- logRisk.k1[,2]
+carto$k1.disease3 <- logRisk.k1[,3]
+
+paleta <- brewer.pal(8,"RdYlGn")[8:1]
+values <- c(-Inf,log(c(0.77,0.83,0.91,1,1.10,1.20,1.30)),Inf)
+
+tmap_mode("plot")
+Map.risk <- tm_shape(carto) + 
+  tm_polygons(col=c("Global.disease1","k0.disease1","k1.disease1",
+                    "Global.disease2","k0.disease2","k1.disease2",
+                    "Global.disease3","k0.disease3","k1.disease3"),
+              palette=paleta, border.alpha=0, title="log-risks",
+              legend.show=T, legend.reverse=T,
+              style="fixed", breaks=values, interval.closure="left") + 
+  tm_shape(carto.CCAA) + tm_borders(col="gray40") + 
+  tm_layout(main.title="Posterior median estimates", main.title.position="center",
+            panel.labels=c("Lung cancer (global)","Lung cancer (disjoint)","Lung cancer (1st order)",
+                           "Colorectal cancer (global)","Colorectal cancer (disjoint)","Colorectal cancer (1st order)",
+                           "Stomach cancer (global)","Stomach cancer (disjoint)","Stomach cancer (1st order)"),
+            legend.outside=T, legend.outside.position="right", legend.frame=F,
+            legend.outside.size=0.2, outer.margins=c(0.02,0.01,0.02,0.01)) + 
+  tm_facets(nrow=3, ncol=3)
+
+print(Map.risk)
+
+
+## Maps with posterior exceedence probabilities
+carto <- Carto_SpainMUN
+S <- nrow(carto)
+J <- length(unique(Data_MultiCancer$disease))
+
+prob.Global <- matrix(1-iCAR.Global$summary.linear.predictor$`0cdf`,S,J,byrow=F)
+carto$Global.disease1 <- prob.Global[,1]
+carto$Global.disease2 <- prob.Global[,2]
+carto$Global.disease3 <- prob.Global[,3]
+
+prob.k0 <- matrix(1-iCAR.k0$summary.linear.predictor$`0cdf`,S,J,byrow=F)
+carto$k0.disease1 <- prob.k0[,1]
+carto$k0.disease2 <- prob.k0[,2]
+carto$k0.disease3 <- prob.k0[,3]
+
+prob.k1 <- matrix(1-iCAR.k1$summary.linear.predictor$`0cdf`,S,J,byrow=F)
+carto$k1.disease1 <- prob.k1[,1]
+carto$k1.disease2 <- prob.k1[,2]
+carto$k1.disease3 <- prob.k1[,3]
+
+paleta <- brewer.pal(6,"Blues")[-1]
+values <- c(0,0.1,0.2,0.8,0.9,1)
+
+tmap_mode("plot")
+Map.prob <- tm_shape(carto) + 
+  tm_polygons(col=c("Global.disease1","k0.disease1","k1.disease1",
+                    "Global.disease2","k0.disease2","k1.disease2",
+                    "Global.disease3","k0.disease3","k1.disease3"),
+              palette=paleta, border.alpha=0, title="Prob",
+              legend.show=T, legend.reverse=T,
+              style="fixed", breaks=values, interval.closure="left",
+              labels=c("[0-0.1)","[0.1-0.2)","[0.2-0.8)","[0.8-0.9)","[0.9-1]")) +
+  tm_shape(carto.CCAA) + tm_borders(col="gray40") + 
+  tm_layout(main.title="Posterior exceedence probabilities", main.title.position="center",
+            panel.labels=c("Lung cancer (global)","Lung cancer (disjoint)","Lung cancer (1st order)",
+                           "Colorectal cancer (global)","Colorectal cancer (disjoint)","Colorectal cancer (1st order)",
+                           "Stomach cancer (global)","Stomach cancer (disjoint)","Stomach cancer (1st order)"),
+            legend.outside=T, legend.outside.position="right", legend.frame=F,
+            legend.outside.size=0.2, outer.margins=c(0.02,0.01,0.02,0.01)) + 
+  tm_facets(nrow=3, ncol=3)
+
+print(Map.prob)
+```
+
+### CMC estimates of between-disease correlations and variance parameters
+
+Posterior distributions of the estimated between-disease correlations with the global, and 1st-order neighbourhood models:
+
+```{r}
+rbind(Global=iCAR.Global$summary.cor["rho12",],
+      `k1-CMC`=iCAR.k1$summary.cor["rho12",])
+
+rbind(Global=iCAR.Global$summary.cor["rho13",],
+      `k1-CMC`=iCAR.k1$summary.cor["rho13",])
+
+rbind(Global=iCAR.Global$summary.cor["rho23",],
+      `k1-CMC`=iCAR.k1$summary.cor["rho23",])
+```
+
+```{r, echo=FALSE, fig.width=8}
+par(mfrow=c(1,3), pty="s")
+
+## rho_12 correlation ##
+rho12 <- grep("^rho12",names(iCAR.k1$marginals.cor.partition))
+
+plot(inla.smarginal(iCAR.Global$marginals.cor$`rho12`), type="l", 
+     xlab="", ylab="", main=expression(rho[1.2]),
+     col="blue", lwd=2, xlim=c(-1,1), ylim=c(0,10))
+
+for(i in rho12){
+  lines(inla.smarginal(iCAR.k1$marginals.cor.partition[[i]]), lty=2)
+}
+lines(inla.smarginal(iCAR.k1$marginals.cor$`rho12`), col="red", lwd=2)
+legend("topleft", legend=c("Global model","CMC estimate"),
+       lwd=2, bty="n", col=c("blue","red"))
+
+## rho_13 correlation ##
+rho13 <- grep("^rho13",names(iCAR.k1$marginals.cor.partition))
+
+plot(inla.smarginal(iCAR.Global$marginals.cor$`rho13`), type="l", 
+     xlab="", ylab="", main=expression(rho[1.3]),
+     col="blue", lwd=2, xlim=c(-1,1), ylim=c(0,10))
+
+for(i in rho13){
+  lines(inla.smarginal(iCAR.k1$marginals.cor.partition[[i]]), lty=2)
+}
+lines(inla.smarginal(iCAR.k1$marginals.cor$`rho13`), col="red", lwd=2)
+legend("topleft", legend=c("Global model","CMC estimate"),
+       lwd=2, bty="n", col=c("blue","red"))
+
+## rho_23 correlation ##
+rho23 <- grep("^rho23",names(iCAR.k1$marginals.cor.partition))
+
+plot(inla.smarginal(iCAR.Global$marginals.cor$`rho23`), type="l", 
+     xlab="", ylab="", main=expression(rho[2.3]),
+     col="blue", lwd=2, xlim=c(-1,1), ylim=c(0,8))
+
+for(i in rho23){
+  lines(inla.smarginal(iCAR.k1$marginals.cor.partition[[i]]), lty=2)
+}
+lines(inla.smarginal(iCAR.k1$marginals.cor$`rho23`), col="red", lwd=2)
+legend("topleft", legend=c("Global model","CMC estimate"),
+       lwd=2, bty="n", col=c("blue","red"))
+```
+
+Maps of posterior medians of between-disease correlations and standard deviation (in brackets) for the different subdivisions obtained with the 1st-order neighbourhood partition model. Correlations between lung and colorectal cancer are displayed on the left ($\rho_{1,2}$), the central map displays the correlations between lung and stomach cancer ($\rho_{1,3}$) and the map on the right displays the correlation between colorectal and stomach cancer ($\rho_{2,3}$).
+
+```{r, echo=FALSE, warning=FALSE, fig.width=10}
+library(grid)
+
+model <- iCAR.k1
+
+cor.values <- data.frame(rho12.median=model$summary.cor.partition[rho12,"0.5quant"],
+                         rho13.median=model$summary.cor.partition[rho13,"0.5quant"],
+                         rho23.median=model$summary.cor.partition[rho23,"0.5quant"],
+                         rho12.sd=model$summary.cor.partition[rho12,"sd"],
+                         rho13.sd=model$summary.cor.partition[rho13,"sd"],
+                         rho23.sd=model$summary.cor.partition[rho23,"sd"])
+
+paleta <- brewer.pal(5,"RdPu")
+values <- c(0,0.20,0.40,0.60,0.80,1)
+
+carto.CCAA <- aggregate(Carto_SpainMUN[,"geometry"],list(ID.group=st_drop_geometry(Carto_SpainMUN)$region), head)
+carto <- cbind(carto.CCAA, cor.values)
+
+## Text ##
+carto$rho.12 <- round(carto$rho12.median,2)
+carto$rho.13 <- round(carto$rho13.median,2)
+carto$rho.23 <- round(carto$rho23.median,2)
+carto$SD.rho12 <- paste0("(",round(carto$rho12.sd,2),")")
+carto$SD.rho13 <- paste0("(",round(carto$rho13.sd,2),")")
+carto$SD.rho23 <- paste0("(",round(carto$rho23.sd,2),")")
+
+aux.name <- c(expression(rho[1.2]),expression(rho[1.3]),expression(rho[2.3]))
+pos.x <- rep(0, 15)
+pos.x[c(2,5)] <- c(-0.2,0.45)
+pos.y <- rep(0.25, 15)
+pos.y[c(2,5,7)] <- c(0,0.3,0.5)
+pos.y.ic <- rep(-0.25, 15)
+pos.y.ic[c(2,5,7)] <- c(-0.5,-0.2, 0)
+
+Map <- vector("list", J*(J-1)/2)
+names(Map) <-  paste("rho",apply(combn(J,2), 2, function(x) paste0(x, collapse="")),sep="")
+
+for(j in seq(length(Map))){
+  Map[[j]] <- 
+    tm_shape(carto) +
+    tm_polygons(col=paste(names(Map)[j],"median",sep="."),
+                palette=paleta, border.alpha=0, title="", legend.show=T, legend.reverse=T,
+                style="fixed", breaks=values, interval.closure="left") +
+    tm_layout(main.title="", 
+              main.title.size = 0.85,
+              main.title.position="center",
+              legend.outside=F, legend.outside.position="right", legend.frame=F, legend.outside.size=0.3,
+              panel.labels=aux.name[j],
+              panel.label.bg.color="lightskyblue3", bg.color="aliceblue",
+              outer.margins=c(0.02,0.01,0.02,0.01)) + 
+    tm_shape(carto) + tm_borders(col="gray48", lwd=1) + 
+    tm_text(paste("rho",apply(combn(J,2), 2, function(x) paste0(x, collapse="")),sep=".")[j],
+            size=0.7, fontface="bold", legend.size.show=FALSE, 
+            legend.col.show=FALSE, xmod=pos.x, ymod=pos.y) + 
+    tm_shape(carto) + 
+    tm_text(paste("SD.rho",apply(combn(J,2), 2, function(x) paste0(x, collapse="")),sep="")[j],
+            size=0.5, fontface="bold", legend.size.show=FALSE, 
+            legend.col.show=FALSE, xmod=pos.x, ymod=pos.y.ic)
+}
+
+pushViewport(viewport(layout=grid.layout(1,3)))
+print(Map[[1]], vp=viewport(layout.pos.row = 1, layout.pos.col = 1))
+print(Map[[2]], vp=viewport(layout.pos.row = 1, layout.pos.col = 2))
+print(Map[[3]], vp=viewport(layout.pos.row = 1, layout.pos.col = 3))
+```

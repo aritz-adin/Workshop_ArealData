@@ -14,7 +14,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Manual for installing the `bigDM` package
 
-The R package [`bigDM`](https://cran.r-project.org/web/packages/bigDM/index.html) implements several spatial and spatio-temporal scalable disease mapping models for high-dimensional count data using the integrated nested Laplace approximation (INLA) technique for approximate Bayesian inference in latent Gaussian models ([Orozco-Acosta et al., 2021](doi:10.1016/j.spasta.2021.100496); [Orozco-Acosta et al., 2023](doi:10.1016/j.cmpb.2023.107403); and [Vicente et al., 2023](doi:10.1007/s11222-023-10263-x)).
+The R package [`bigDM`](https://cran.r-project.org/web/packages/bigDM/index.html) implements several spatial and spatio-temporal scalable disease mapping models for high-dimensional count data using the integrated nested Laplace approximation (INLA) technique for approximate Bayesian inference in latent Gaussian models ([Orozco-Acosta et al., 2021](https://doi.org/10.1016/j.spasta.2021.100496); [Orozco-Acosta et al., 2023](https://doi.org/10.1016/j.cmpb.2023.107403); and [Vicente et al., 2023](https://doi.org/10.1007/s11222-023-10263-x)).
 
 ### Prerequisites
 

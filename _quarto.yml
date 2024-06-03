@@ -12,7 +12,11 @@ website:
         text: Installing bigDM
       - href: Section2.qmd
         text: Spatial models
-
+      - href: Section3.qmd
+        text: Multivariate models
+      - href: Section4.qmd
+        text: Spatio-temporal models
+  
 format:
   html:
     theme: cosmo

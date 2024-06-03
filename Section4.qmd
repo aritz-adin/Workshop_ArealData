@@ -1,0 +1,15 @@
+---
+title: "Section 4: Spatio-temporal CAR models for spatial disease mapping"
+author: "Aritz Adin"
+date: "2024-06-27"
+date-format: medium
+format:
+  html:
+    toc: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)  
+```
+
+Description
