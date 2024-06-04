@@ -283,7 +283,7 @@ rbind(Global=iCAR.Global$summary.cor["rho23",],
       `k1-CMC`=iCAR.k1$summary.cor["rho23",])
 ```
 
-```{r, echo=FALSE, fig.width=8}
+```{r, echo=FALSE, fig.width=8, fig.height=3}
 par(mfrow=c(1,3), pty="s")
 
 ## rho_12 correlation ##
@@ -329,70 +329,26 @@ legend("topleft", legend=c("Global model","CMC estimate"),
        lwd=2, bty="n", col=c("blue","red"))
 ```
 
-Maps of posterior medians of between-disease correlations and standard deviation (in brackets) for the different subdivisions obtained with the 1st-order neighbourhood partition model. Correlations between lung and colorectal cancer are displayed on the left ($\rho_{1,2}$), the central map displays the correlations between lung and stomach cancer ($\rho_{1,3}$) and the map on the right displays the correlation between colorectal and stomach cancer ($\rho_{2,3}$).
+Maps of posterior medians of between-disease correlations for the different subdivisions obtained with the 1st-order neighbourhood partition model. Correlations between lung and colorectal cancer are displayed on the left ($\rho_{1,2}$), the central map displays the correlations between lung and stomach cancer ($\rho_{1,3}$) and the map on the right displays the correlation between colorectal and stomach cancer ($\rho_{2,3}$).
 
-```{r, echo=FALSE, warning=FALSE, fig.width=10}
-library(grid)
-
-model <- iCAR.k1
-
-cor.values <- data.frame(rho12.median=model$summary.cor.partition[rho12,"0.5quant"],
-                         rho13.median=model$summary.cor.partition[rho13,"0.5quant"],
-                         rho23.median=model$summary.cor.partition[rho23,"0.5quant"],
-                         rho12.sd=model$summary.cor.partition[rho12,"sd"],
-                         rho13.sd=model$summary.cor.partition[rho13,"sd"],
-                         rho23.sd=model$summary.cor.partition[rho23,"sd"])
-
-paleta <- brewer.pal(5,"RdPu")
-values <- c(0,0.20,0.40,0.60,0.80,1)
+```{r, message=FALSE, warning=FALSE, fig.width=10, fig.height=4}
+cor.values <- data.frame(rho12=iCAR.k1$summary.cor.partition[rho12,"0.5quant"],
+                         rho13=iCAR.k1$summary.cor.partition[rho13,"0.5quant"],
+                         rho23=iCAR.k1$summary.cor.partition[rho23,"0.5quant"])
 
 carto.CCAA <- aggregate(Carto_SpainMUN[,"geometry"],list(ID.group=st_drop_geometry(Carto_SpainMUN)$region), head)
 carto <- cbind(carto.CCAA, cor.values)
 
-## Text ##
-carto$rho.12 <- round(carto$rho12.median,2)
-carto$rho.13 <- round(carto$rho13.median,2)
-carto$rho.23 <- round(carto$rho23.median,2)
-carto$SD.rho12 <- paste0("(",round(carto$rho12.sd,2),")")
-carto$SD.rho13 <- paste0("(",round(carto$rho13.sd,2),")")
-carto$SD.rho23 <- paste0("(",round(carto$rho23.sd,2),")")
+paleta <- brewer.pal(5,"RdPu")
+values <- c(0,0.20,0.40,0.60,0.80,1)
 
-aux.name <- c(expression(rho[1.2]),expression(rho[1.3]),expression(rho[2.3]))
-pos.x <- rep(0, 15)
-pos.x[c(2,5)] <- c(-0.2,0.45)
-pos.y <- rep(0.25, 15)
-pos.y[c(2,5,7)] <- c(0,0.3,0.5)
-pos.y.ic <- rep(-0.25, 15)
-pos.y.ic[c(2,5,7)] <- c(-0.5,-0.2, 0)
-
-Map <- vector("list", J*(J-1)/2)
-names(Map) <-  paste("rho",apply(combn(J,2), 2, function(x) paste0(x, collapse="")),sep="")
-
-for(j in seq(length(Map))){
-  Map[[j]] <- 
-    tm_shape(carto) +
-    tm_polygons(col=paste(names(Map)[j],"median",sep="."),
-                palette=paleta, border.alpha=0, title="", legend.show=T, legend.reverse=T,
-                style="fixed", breaks=values, interval.closure="left") +
-    tm_layout(main.title="", 
-              main.title.size = 0.85,
-              main.title.position="center",
-              legend.outside=F, legend.outside.position="right", legend.frame=F, legend.outside.size=0.3,
-              panel.labels=aux.name[j],
-              panel.label.bg.color="lightskyblue3", bg.color="aliceblue",
-              outer.margins=c(0.02,0.01,0.02,0.01)) + 
-    tm_shape(carto) + tm_borders(col="gray48", lwd=1) + 
-    tm_text(paste("rho",apply(combn(J,2), 2, function(x) paste0(x, collapse="")),sep=".")[j],
-            size=0.7, fontface="bold", legend.size.show=FALSE, 
-            legend.col.show=FALSE, xmod=pos.x, ymod=pos.y) + 
-    tm_shape(carto) + 
-    tm_text(paste("SD.rho",apply(combn(J,2), 2, function(x) paste0(x, collapse="")),sep="")[j],
-            size=0.5, fontface="bold", legend.size.show=FALSE, 
-            legend.col.show=FALSE, xmod=pos.x, ymod=pos.y.ic)
-}
-
-pushViewport(viewport(layout=grid.layout(1,3)))
-print(Map[[1]], vp=viewport(layout.pos.row = 1, layout.pos.col = 1))
-print(Map[[2]], vp=viewport(layout.pos.row = 1, layout.pos.col = 2))
-print(Map[[3]], vp=viewport(layout.pos.row = 1, layout.pos.col = 3))
+tm_shape(carto) +
+    tm_polygons(col=c("rho12","rho13","rho23"), palette=paleta,
+                title="", legend.show=T, legend.reverse=T,
+                style="fixed", breaks=values, interval.closure="left") + 
+  tm_layout(main.title="", main.title.position="center",
+            panel.labels=c(expression(rho[1.2]),expression(rho[1.3]),expression(rho[2.3])),
+            legend.outside=T, legend.outside.position="right", legend.frame=F,
+            legend.outside.size=0.2, outer.margins=c(0.02,0.01,0.02,0.01)) + 
+  tm_facets(nrow=1, ncol=3)
 ```
