@@ -64,7 +64,7 @@ Before installing `bigDM`, ensure that you have the following prerequisites:
     install_github("spatialstatisticsupna/bigDM")
     ```
 
-### Verifying the Installation
+### Verifying the installation
 
 Load the package and check its documentation:
 ```{r, message=FALSE, warning=FALSE}

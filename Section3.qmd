@@ -149,7 +149,7 @@ iCAR.Global$summary.var
 Again, we propose to divide the data into the $D=15$ Autonomous Regions of Spain (`region` variable of the `Carto_SpainMUN` object). The *disjoint* and *k-order neighbourhood models* with an iCAR prior distribution are fitted using the `MCAR_INLA()` function as:
 
 ```{r}
-parallel::detectCores()
+future::availableWorkers()
 
 iCAR.k0 <- MCAR_INLA(carto=Carto_SpainMUN, data=Data_MultiCancer,
                      ID.area="ID", ID.disease="disease", O="obs", E="exp",
