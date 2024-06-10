@@ -12,7 +12,7 @@ format:
 knitr::opts_chunk$set(echo = TRUE)  
 ```
 
-This practice focuses on how to use the `bigDM` package to fit the scalable spatial model’s proposals described in [Orozco-Acosta et al. (2021)](https://doi.org/10.1016/j.spasta.2021.100496) using simulated mortality data from the municipalities of continental Spain.
+This lab session focuses on how to use the `bigDM` package to fit the scalable spatial model’s proposals described in [Orozco-Acosta et al. (2021)](https://doi.org/10.1016/j.spasta.2021.100496) using simulated mortality data from the municipalities of continental Spain.
 
 ## The `CAR_INLA()` function
 

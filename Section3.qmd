@@ -12,7 +12,7 @@ format:
 knitr::opts_chunk$set(echo = TRUE)  
 ```
 
-In the previous practice, we show how to fit spatial Poisson mixed models for high-dimensional areal data using the R package `bigDM`. Here, we describe how to use this package to fit order-free multivariate scalable Bayesian models to smooth mortality (or incidence) risks of several diseases simultaneously [Vicente et al, (2023)](https://doi.org/10.1007/s11222-023-10263-x).
+In the previous lab session, we show how to fit spatial Poisson mixed models for high-dimensional areal data using the R package `bigDM`. Here, we describe how to use this package to fit order-free multivariate scalable Bayesian models to smooth mortality (or incidence) risks of several diseases simultaneously [Vicente et al, (2023)](https://doi.org/10.1007/s11222-023-10263-x).
 
 ## The `MCAR_INLA()` function
 
@@ -146,7 +146,7 @@ iCAR.Global$summary.var
 
 ### Partition models
 
-Again, we propose to divide the data into the $D=15$ Autonomous Regions of Spain (`region` variable of the `Carto_SpainMUN` object). The *disjoint* and *k-order neighbourhood models* with an iCAR prior distribution are fitted using the `MCAR_INLA()` function as:
+Again, we propose to divide the data into the $D=15$ Autonomous Regions of Spain (`region` variable of the `Carto_SpainMUN` object). The *disjoint* and *1st-order neighbourhood model* with an iCAR prior distribution are fitted using the `MCAR_INLA()` function as:
 
 ```{r}
 future::availableWorkers()

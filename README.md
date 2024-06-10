@@ -40,13 +40,9 @@ programme](https://www2.unavarra.es/gesadj/inst_inamat/archivos-pdf/Program_STWo
 
 ## Workshop on Areal data
 
-``` html
-<a href="https://github.com/aritz-adin/Workshop_ArealData/blob/main/Section1.qmd?raw=True" download>Download Section1.qmd</a>
-```
-
-| Bayesian scalable models to analyze high-dimensional areal data using the bigDM library ([slides](./Workshop_ArealData.pdf)) |
-|------------------------------------------------------------------------------------------------------------------------------|
-| Section 1: Installing bigDM package                                                                                          |
-| Section 2: Spatial models for high-dimensional areal data                                                                    |
-| Section 3: Spatial-temporal models for high-dimensional areal data                                                           |
-| Section 4: Multivariate spatial models for high-dimensional areal data                                                       |
+| Bayesian scalable models to analyze high-dimensional areal data using the bigDM library ([slides](./Workshop_ArealData.pdf))                                               |
+|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Section 1: Installing bigDM package ([Section1.qmd](https://raw.githubusercontent.com/aritz-adin/Workshop_ArealData/main/Section1.qmd))                                    |
+| Section 2: Spatial models for high-dimensional areal data ([Section2.qmd](https://raw.githubusercontent.com/aritz-adin/Workshop_ArealData/main/Section2.qmd))              |
+| Section 3: Multivariate spatial models for high-dimensional areal data ([Section3.qmd](https://raw.githubusercontent.com/aritz-adin/Workshop_ArealData/main/Section3.qmd)) |
+| Section 4: Spatio-temporal models for high-dimensional areal data ([Section4.qmd](https://raw.githubusercontent.com/aritz-adin/Workshop_ArealData/main/Section4.qmd))      |

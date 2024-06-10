@@ -1,5 +1,5 @@
 ---
-title: "Section 4: Spatio-temporal CAR models for spatial disease mapping"
+title: "Section 4: Spatio-temporal models for disease mapping"
 author: "Aritz Adin"
 date: "2024-06-27"
 date-format: medium
@@ -12,4 +12,337 @@ format:
 knitr::opts_chunk$set(echo = TRUE)  
 ```
 
-Description
+In this lab session we describe how to use the `bigDM` package to fit spatio-temporal models with conditional autoregressive (CAR) priors for space and random walk (RW) priors for time including space-time interactions (Knorr-Held, 2000; Ugarte et al., 2014) by extending our scalable model’s proposal to deal with massive spatio-temporal data [(Orozco-Acosta et al., 2023)](https://doi.org/10.1016/j.cmpb.2023.107403).
+
+## The `STCAR_INLA()` function
+
+This function allows fitting (scalable) spatio-temporal Poisson mixed models to areal count data, where the linear predictor is modelled as
+
+```{=tex}
+\begin{equation}
+\log r_{it} = \beta_0 + {\bf x}_{it}^{'}\mathbf{\beta} + \xi_i + \gamma_t + \delta_{it}, \quad \mbox{for} \quad i=1,\ldots,I; \; t=1,\ldots,T
+\end{equation}
+```
+where $\beta_0$ is a global intercept, ${\bf x}_{it}^{'}=(x_{it1},\ldots,x_{itp})$ is a p-vector of standardized covariates in the $i$-th area and time period $t$, $\mathbf{\beta}=(\beta_1,\ldots,\beta_p)^{'}$ is the $p$-vector of fixed effect coefficients, $\xi_i$ is a spatially structured random effect with a CAR prior distribution, $\gamma_t$ is a temporally structured random effect with a RW prior distribution, and $\delta_{it}$ is a space-time interaction effect.
+
+These models are flexible enough to describe many real situations, and their interpretation is simple and attractive. However, the models are typically not identifiable and appropriate sum-to-zero constraints must be imposed over the random effects [(Goicoa et al., 2018)](https://doi.org/10.1007/s00477-017-1405-0).
+
+### Prior distributions for the random effects
+
+Several priors distributions for spatial and temporal random effect are implemented in the `STCAR_INLA()` function, which are specified through the `spatial=...` and `temporal=...` arguments.
+
+For the spatial random effect, the same values as the `prior=...` argument in the `CAR_INLA()`function are defined. For the temporally structured random effect, random walks of first (RW1) or second order (RW2) prior distributions can be assumed as follow:
+
+```{=tex}
+\begin{equation}
+\label{eq:temporal}
+\gamma \sim N(0,[\tau_{\gamma}R_{\gamma}]^{-}),
+\end{equation}
+```
+where $\tau_{\gamma}$ is a precision parameter, $R_{\gamma}$ is the $T \times T$ structure matrix of a RW1/RW2, and $^{-}$ denotes the Moore-Penrose generalized inverse.
+
+Finally, the following prior distribution is assumed for the space-time interaction random effect $\delta=(\delta_{11},\ldots,\delta_{I1},\ldots,\delta_{1T},\ldots,\delta_{IT})^{'}$
+
+```{=tex}
+\begin{equation}
+\label{eq:space-time}
+\delta \sim N(0,[\tau_{\delta}R_{\delta}]^{-}).
+\end{equation}
+```
+Here, $\tau_{\delta}$ is a precision parameter and $R_{\delta}$ is the $IT \times IT$ matrix obtained as the Kronecker product of the corresponding spatial and temporal structure matrices (recall that $R_{\xi}=\textbf{D}_{W}-\textbf{W}$), where four types of interactions can be considered.
+
+| Interaction |         $R_{\delta}$         | Spatial correlation | Temporal correlation |
+|------------------|:-----------------:|:----------------:|:----------------:|
+| Type I      |    $I_{T} \otimes I_{I}$     |         \-          |          \-          |
+| Type II     |  $R_{\gamma} \otimes I_{I}$  |         \-          |     $\checkmark$     |
+| Type III    |   $I_{T} \otimes R_{\xi}$    |    $\checkmark$     |          \-          |
+| Type IV     | $R_{\gamma} \otimes R_{\xi}$ |    $\checkmark$     |     $\checkmark$     |
+
+Table 1: Specification for the different types of space-time interactions
+
+| Interaction |         $R_{\delta}$         |                                                                                                                                                     Constraints                                                                                                                                                     |
+|-------------------|:-------------------------:|:------------------------:|
+| Type I      |    $I_{T} \otimes I_{I}$     |                                                                                     $\sum\limits_{i=1}^I \xi_i=0, \, \sum\limits_{t=1}^T \gamma_t=0, \, \mbox{ and } \, \sum\limits_{i=1}^I \sum\limits_{t=1}^T \delta_{it}=0.$                                                                                     |
+| Type II     |  $R_{\gamma} \otimes I_{I}$  |                                                                               $\sum\limits_{i=1}^I \xi_i=0, \, \sum\limits_{t=1}^T \gamma_t=0, \, \mbox{ and } \, \sum\limits_{t=1}^T \delta_{it}=0, \, \mbox{for } \, i=1,\ldots,I.$                                                                               |
+| Type III    |   $I_{T} \otimes R_{\xi}$    |                                                                               $\sum\limits_{i=1}^I \xi_i=0, \, \sum\limits_{t=1}^T \gamma_t=0, \, \mbox{ and } \, \sum\limits_{i=1}^I \delta_{it}=0, \, \mbox{for } \, t=1,\ldots,T.$                                                                               |
+| Type IV     | $R_{\gamma} \otimes R_{\xi}$ |                                                                                                                 $\sum\limits_{i=1}^I \xi_i=0, \, \sum\limits_{t=1}^T \gamma_t=0, \,  \mbox{ and } \,                                                                                                                
+                                                                                                                                                                                        \begin{array}{l} \sum\limits_{t=1}^T \delta_{it}=0, \, \mbox{for } \, i=1,\ldots,I, \\ \sum\limits_{i=1}^I \delta_{it}=0, \, \mbox{for } \, t=1,\ldots,T. \\ \end{array}$  |
+
+Table 2: Identifiability constraints for the different types of space-time interaction effects in CAR models
+
+### Main input arguments
+
+A brief description of the main input arguments and functionalities of the `STCAR_INLA()` function are described below:
+
+-   **`carto`**: object of class `sf` or `SpatialPolygonsDataFrame`. This object must contain at least the variable with the identifiers of the spatial areal units specified in the argument `ID.area`.
+
+-   **`data`**: object of class `data.frema` that must contain the target variables of interest specified in the arguments `ID.area`, `ID.year`, `O` and `E`.
+
+-   **`ID.area`**: character; name of the variable that contains the IDs of spatial areal units.
+
+-   **`ID.year`**: character; name of the variable that contains the IDs of time points.
+
+-   **`ID.group`**: character; name of the variable that contains the IDs of the spatial partition (grouping variable). Only required if `model="partition"`.
+
+-   **`O`**: character; name of the variable that contains the observed number of cases for each areal unit and disease.
+
+-   **`E`**: character; name of the variable that contains either the expected number of cases for each areal unit and disease.
+
+-   **`X`**: a character vector containing the names of the covariates within the `carto` object to be included in the model as fixed effects, or a matrix object playing the role of the fixed effects design matrix. If `X=NULL` (default), only a global intercept is included in the model as fixed effect.
+
+-   **`W`**: optional argument with the binary adjacency matrix of the spatial areal units. If `NULL` (default), this object is computed from the `carto` argument (two areas are considered as neighbours if they share a common border).
+
+-   **`spatial`**: one of either `"Leroux"` (default), `"intrinsic"`, `BYM` or `BYM2`, which specifies the prior distribution considered for the spatial random effect.
+
+-   **`temporal`**: one of either `"rw1"` (default) or \`rw2\`\`, which specifies the prior distribution considered for the temporal random effect.
+
+-   **`interaction`**: one of either `"none"`, `"TypeI"`, `"TypeII"`, `"TypeIII"` or `"TypeIV"` (default), which specifies the prior distribution considered for the space-time interaction random effect.
+
+-   **`model`**: one of either `"global"` or `"partition"` (default), which specifies the Global model or one of the scalable model proposal’s (*Disjoint model* and *k-order neighbourhood model*, respectively).
+
+-   **`k`**: numeric value with the neighbourhood order used for the partition model. Usually k=2 or 3 is enough to get good results. If `k=0` (default) the Disjoint model is considered. Only required if `model="partition"`.
+
+-   **`compute.DIC`**: logical value; if `TRUE` (default) then approximate values of the Deviance Information Criterion (DIC) and Watanabe-Akaike Information Criterion (WAIC) are computed.
+
+-   **`compute.fitted.values`**: logical value (default `FALSE`); if `TRUE` transforms the posterior marginal distribution of the linear predictor to the exponential scale (risks or rates).
+
+-   **`inla.mode`**: one of either `"classic"` (default) or `"compact"`, which specifies the approximation method used by INLA. See `help(inla)` for further details.
+
+For further details, please refer to the [reference manual](https://cran.r-project.org/web/packages/bigDM/bigDM.pdf) and the [vignettes](https://github.com/spatialstatisticsupna/bigDM/tree/master?tab=readme-ov-file#basic-use) accompanying this package.
+
+## Example: colorectal cancer mortality data during the period 1991-2015
+
+As with multivariate models, both the `carto=...` and `data=...` arguments must be included in the `STCAR_INLA()` function when fitting spatio-temporal models.
+
+In this lab session, the simulated data of lung cancer mortality during the period 1991-2015 included in the `Data_LungCancer` object will be used as illustration.
+
+```{r}
+library(bigDM)
+library(INLA)
+library(sf)
+library(tmap)
+
+data(Data_MultiCancer)
+str(Data_MultiCancer)
+```
+
+The data has a common identification variable (`ID`) to link it with the `Carto_SpainMUN` object, containing the cartography of Spanish municipalities:
+
+```{r}
+data("Carto_SpainMUN")
+Carto_SpainMUN$obs <- NULL
+Carto_SpainMUN$exp <- NULL
+Carto_SpainMUN$SMR <- NULL
+
+head(Carto_SpainMUN)
+```
+
+### Global model
+
+The global model, featuring a BYM2 spatial random effect, an RW1 temporal random effect, and a Type IV interaction random effect, is fitted using the `STCAR_INLA()` function as follows:
+
+```{r eval=FALSE}
+## NOT RUN!
+# Global <- STCAR_INLA(carto=Carto_SpainMUN, data=Data_LungCancer,
+#                      ID.area="ID", ID.year="year", O="obs", E="exp",
+#                      spatial="BYM2", temporal="rw1", interaction="TypeIV",
+#                      model="global", inla.mode="compact")
+```
+
+**NOTE: When the number of small areas and time periods increases considerably (as is the case when analyzing count data at the municipality level), fitting spatio-temporal *global* models with Type II/Type IV interactions becomes computationally very demanding or even unfeasible.**
+
+### Partition models
+
+For our analysis, we propose to divide the data into the $D=47$ provinces of continental Spain. To classify the areas into provinces, the first two digits of the `ID.area` variable is used.
+
+```{r}
+Carto_SpainMUN$ID.prov <- substr(Carto_SpainMUN$ID,1,2)
+```
+
+In the code below, we show how to fit the *disjoint* and *1st-order neigbourhood* model with Type I space-time interaction random effect using 4 local clusters (in parallel):
+
+```{r, echo=TRUE, results='hide'}
+Model.k0 <- STCAR_INLA(carto=Carto_SpainMUN, data=Data_LungCancer,
+                       ID.area="ID", ID.year="year", O="obs", E="exp",
+                       model="partition", k=0, ID.group="ID.prov",
+                       spatial="intrinsic", temporal="rw1", interaction="TypeI",
+                       plan="cluster", workers=rep("localhost",4),
+                       strategy="gaussian")
+gc()
+```
+
+```{r, echo=TRUE, results='hide'}
+Model.k1 <- STCAR_INLA(carto=Carto_SpainMUN, data=Data_LungCancer,
+                       ID.area="ID", ID.year="year", O="obs", E="exp",
+                       model="partition", k=1, ID.group="ID.prov",
+                       spatial="intrinsic", temporal="rw1", interaction="TypeI",
+                       plan="cluster", workers=rep("localhost",4),
+                       strategy="gaussian")
+gc()
+```
+```{r}
+## Computational time
+Model.k0$cpu.used
+Model.k1$cpu.used
+
+## Model comparison
+compare.DIC <- function(x){
+  res <- data.frame(mean.deviance=x$dic$mean.deviance, p.eff=x$dic$p.eff,
+                    DIC=x$dic$dic, WAIC=x$waic$waic)
+  round(res,2)
+}
+MODELS <- list("k=0"=Model.k0,"k=1"=Model.k1)
+do.call(rbind,lapply(MODELS, compare.DIC))
+```
+*Computations are made in personal computer with a 3.41 GHz Intel Core i5-7500 processor and 32GB RAM using R-INLA stable version INLA_24.05.10*
+
+### Plot the results
+
+Maps of posterior median estimates of $\log{r_{it}}$
+
+```{r, warning=FALSE, message=FALSE}
+library(RColorBrewer)
+
+## Results for 1st-order neighbourhood model ##
+Model <- Model.k1
+
+S <- length(unique(Data_LungCancer$ID))
+T <- length(unique(Data_LungCancer$year))
+t.from <- min(Data_LungCancer$year)
+t.to <- max(Data_LungCancer$year)
+
+log.risks <- matrix(Model$summary.linear.predictor$`0.5quant`, nrow=S, ncol=T, byrow=F)
+colnames(log.risks) <- paste("Year", seq(t.from,t.to), sep=".")
+
+carto <- cbind(Carto_SpainMUN,log.risks)
+
+paleta <- brewer.pal(8,"RdYlGn")[8:1]
+values <- c(0,0.67,0.77,0.83,1,1.20,1.30,1.50,Inf)
+
+Map.risks <- tm_shape(carto) +
+  tm_polygons(col=paste("Year",round(seq(t.from,t.to,length.out=9)),sep= "."),
+              palette=paleta, title="log-risks", legend.show=T, border.col="transparent",
+              legend.reverse=T, style="fixed", breaks=log(values), midpoint=0, interval.closure="left") +
+  tm_grid(n.x=5, n.y=5, alpha=0.2, labels.format=list(scientific=T),
+          labels.inside.frame=F, labels.col="white") +
+  tm_layout(main.title="", main.title.position="center", panel.label.size=1.5,
+            legend.outside=T, legend.outside.position="right", legend.frame=F,
+            legend.outside.size=0.2, outer.margins=c(0.02,0.01,0.02,0.01),
+            panel.labels=as.character(round(seq(t.from,t.to,length.out=9)))) +
+  tm_facets(nrow=3, ncol=4)
+
+print(Map.risks)
+```
+
+Maps of posterior exceedence probabilities $Pr(\log{r_{it}}>0 | {\bf 0})$
+
+```{r, warning=FALSE, message=FALSE}
+probs <- matrix(1-Model$summary.linear.predictor$`0cdf`, nrow=S, ncol=T, byrow=F)
+colnames(probs) <- paste("Year", seq(t.from,t.to), sep=".")
+
+carto <- cbind(Carto_SpainMUN,probs)
+
+paleta <- brewer.pal(6,"Blues")[-1]
+values <- c(0,0.1,0.2,0.8,0.9,1)
+
+Map.probs <- tm_shape(carto) +
+  tm_polygons(col=paste("Year",round(seq(t.from,t.to,length.out=9)),sep="."),
+              palette=paleta, title="", legend.show=T, border.col="transparent",
+              legend.reverse=T, style="fixed", breaks=values, interval.closure="left",
+              labels=c("[0-0.1)","[0.1-0.2)","[0.2-0.8)","[0.8-0.9)","[0.9-1]")) +
+  tm_grid(n.x=5, n.y=5, alpha=0.2, labels.format=list(scientific=T),
+          labels.inside.frame=F, labels.col="white") +
+  tm_layout(main.title="", main.title.position="center", panel.label.size=1.5,
+            legend.outside=T, legend.outside.position="right", legend.frame=F,
+            legend.outside.size=0.2, outer.margins=c(0.02,0.01,0.02,0.01),
+            panel.labels=as.character(round(seq(t.from,t.to,length.out=9)))) +
+  tm_facets(nrow=3, ncol=3)
+
+print(Map.probs)
+```
+
+Temporal evolution of mortality risks for some selected municipalities (Pamplona, Valencia and Toledo) and its corresponding 95% credible intervals. The colors used in the bands are associated with the posterior exceedence probabilities represented in the previous maps.
+
+```{r, echo=FALSE}
+## CAUTION! This is not the proper way to compute posterior distributions of the risk
+
+plot.region <- function(model, ID.area, area.name, color, line.color="red",
+                        plot.abline=TRUE, plot.SMR=TRUE, xlab=NULL, ylab=NULL,
+                        xlim=NULL, ylim=NULL, t.from=NULL, t.to=NULL){
+  
+	n.region <- length(ID.area)
+	n.time <- length(unique(model$.args$data$Year))
+	  
+	datos <- data.frame(risk=exp(model$summary.linear.predictor$`0.5quant`),
+	                    q1=exp(model$summary.linear.predictor$`0.025quant`),
+	                    q2=exp(model$summary.linear.predictor$`0.975quant`),
+	                    prob=cut(1-model$summary.linear.predictor$`0cdf`,
+	                             include.lowest=TRUE, right=FALSE,
+	                             breaks=c(0,0.1,0.2,0.8,0.9,1),
+	                             labels=c("[0.0,0.1)","[0.1,0.2)","[0.2,0.8)","[0.8,0.9)","[0.9,1.0]")),
+	                    ID.area=model$.args$data$Area,
+	                    ID.year=model$.args$data$Year,
+	                    O=model$.args$data$O,
+	                    E=model$.args$data$E,
+	                    SMR=model$.args$data$O/model$.args$data$E)
+
+	datos <- datos[datos$ID.area %in% ID.area,]
+	
+	if(is.null(ylim)) ylim=range(datos$SMR)
+	if(is.null(xlim)) xlim=c(1,T)
+	if(is.null(t.from)) t.from <- 1
+	if(is.null(t.to)) t.to <- T
+	
+	kk <- 1
+	for(k in ID.area) {
+	  
+	  aux <- datos[datos$ID.area==k,]
+
+  	par(mar=c(5,5,4,2))
+		plot(x=xlim, y=ylim, type="n", xlab=xlab, ylab=ylab, xaxt="n")
+		
+		for(i in xlim[1]:xlim[2]) {
+			X.Vec <- c(i-0.5, i+0.5, i+0.5, i-0.5, i-0.5)
+			Y.Vec <- c(-1,-1,100,100,-1)
+			level <- match(aux$prob[i], levels(aux$prob))
+			polygon(X.Vec, Y.Vec, col=color[level], border=NA)
+		}
+
+		lines(1:T, aux$q1, col="grey")
+		lines(1:T, aux$q2, col="grey")
+
+		X.Vec <- c(1,T,T:1, 1)
+		Y.inf <- c(-1,-1,rev(aux$q1),-1)
+		polygon(X.Vec, Y.inf, col="white", border=NA)
+
+		X.Vec <- c(1:T,T,1,1)
+		Y.sup <- c(aux$q2,100,100,aux$q2[1])
+		polygon(X.Vec, Y.sup, col="white", border=NA)
+
+		polygon(c(0.5,1,1,0.5,0.5), c(-1,-1,100,100,-1), col="white", border=NA)
+		polygon(c(T,T+0.5,T+0.5,T,T), c(-1,-1,100,100,-1), col="white", border=NA)
+
+		graphics::box()
+		if(xlim[2]>8){
+		  axis(1, at=round(seq(xlim[1],xlim[2],length.out=5)), labels=as.character(round(seq(xlim[1]+t.from-1,xlim[2]+t.from-1,length.out=5))), las=0)
+		}else{
+		  axis(1, at=seq(xlim[1],xlim[2]), labels=as.character(seq(xlim[1]+t.from-1,xlim[2]+t.from-1)), las=0)
+		}
+		lines(aux$risk)
+		title(area.name[kk])
+
+		if(plot.SMR) lines(1:T,aux$SMR,col=line.color,lwd=2)
+		
+		if(plot.abline) abline(h=1, lty=2)
+		
+		kk <- kk+1
+	}
+}
+
+par(mfrow=c(1,3), pty="s")
+plot.region(model=Model,
+            ID.area=c("31201","46250","45168"),
+            area.name=c("Pamplona","Valencia","Toledo"),
+            color=brewer.pal(6,"Blues")[-1], xlab="Year", ylab="",
+            xlim=NULL, ylim=c(0.5,1.5), t.from=1991, t.to=2015)
+```
