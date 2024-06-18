@@ -334,12 +334,12 @@ STEP 2: Fitting global model with INLA (this may take a while...)</code></pre>
 <div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(iCAR.Global)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Time used:
-    Pre = 1.2, Running = 154, Post = 6.89, Total = 162 
+    Pre = 1.16, Running = 170, Post = 7.25, Total = 179 
 Fixed effects:
      mean    sd 0.025quant 0.5quant 0.975quant   mode kld
 I1 -0.146 0.006     -0.157   -0.146     -0.134 -0.146   0
-I2 -0.053 0.006     -0.066   -0.053     -0.040 -0.053   0
-I3  0.017 0.010     -0.003    0.017      0.037  0.017   0
+I2 -0.053 0.007     -0.065   -0.053     -0.040 -0.053   0
+I3  0.017 0.010     -0.002    0.017      0.037  0.017   0
 
 Random effects:
   Name    Model
@@ -347,21 +347,21 @@ Random effects:
 
 Model hyperparameters:
                  mean    sd 0.025quant 0.5quant 0.975quant   mode
-Theta1 for idx -1.291 0.032     -1.352   -1.292     -1.225 -1.296
-Theta2 for idx -1.980 0.077     -2.127   -1.982     -1.823 -1.989
-Theta3 for idx -1.361 0.066     -1.494   -1.360     -1.234 -1.355
-Theta4 for idx  0.118 0.010      0.097    0.118      0.138  0.118
-Theta5 for idx  0.102 0.018      0.068    0.101      0.138  0.100
-Theta6 for idx  0.091 0.026      0.041    0.091      0.143  0.090
+Theta1 for idx -1.290 0.032     -1.352   -1.291     -1.225 -1.294
+Theta2 for idx -1.977 0.071     -2.121   -1.976     -1.841 -1.971
+Theta3 for idx -1.358 0.067     -1.486   -1.359     -1.223 -1.364
+Theta4 for idx  0.118 0.010      0.098    0.118      0.139  0.117
+Theta5 for idx  0.102 0.018      0.068    0.101      0.139  0.099
+Theta6 for idx  0.092 0.026      0.042    0.092      0.144  0.091
 
-Deviance Information Criterion (DIC) ...............: 79473.18
-Deviance Information Criterion (DIC, saturated) ....: 25158.18
-Effective number of parameters .....................: 1704.38
+Deviance Information Criterion (DIC) ...............: 79475.17
+Deviance Information Criterion (DIC, saturated) ....: 25160.17
+Effective number of parameters .....................: 1706.46
 
-Watanabe-Akaike information criterion (WAIC) ...: 79386.32
-Effective number of parameters .................: 1392.98
+Watanabe-Akaike information criterion (WAIC) ...: 79385.84
+Effective number of parameters .................: 1392.55
 
-Marginal log-Likelihood:  -40196.40 
+Marginal log-Likelihood:  -40196.49 
 CPO, PIT is computed 
 Posterior summaries for the linear predictor and the fitted values are computed
 (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')</code></pre>
@@ -376,17 +376,17 @@ Posterior summaries for the linear predictor and the fitted values are computed
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>iCAR.Global<span class="sc">$</span>summary.cor</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>           mean         sd 0.025quant  0.5quant 0.975quant
-rho12 0.6467527 0.04735055  0.5486603 0.6480113  0.7317092
-rho13 0.3477141 0.05890247  0.2346237 0.3474656  0.4644444
-rho23 0.4620566 0.07009235  0.3191077 0.4641040  0.5982320</code></pre>
+rho12 0.6457545 0.04615988  0.5517531 0.6457644  0.7342538
+rho13 0.3468393 0.05991274  0.2318322 0.3460548  0.4672593
+rho23 0.4629052 0.06878970  0.3242676 0.4641265  0.5965339</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="do">## Posterior estimates of variance parameters ##</span></span>
 <span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>iCAR.Global<span class="sc">$</span>summary.var</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>           mean          sd 0.025quant   0.5quant 0.975quant
-var1 0.07577604 0.005079632 0.06656753 0.07547586 0.08649505
-var2 0.03323049 0.003762649 0.02667812 0.03292710 0.04125637
-var3 0.08593446 0.010005857 0.06668285 0.08568991 0.10634401</code></pre>
+var1 0.07587254 0.005076536 0.06659616 0.07560170 0.08651672
+var2 0.03332225 0.003525402 0.02684815 0.03314136 0.04068947
+var3 0.08655672 0.010176003 0.06814319 0.08595880 0.10778341</code></pre>
 </div>
 </div>
 </section>
@@ -469,9 +469,9 @@ STEP 3: Merging the results</code></pre>
 <span id="cb27-13"><a href="#cb27-13" aria-hidden="true" tabindex="-1"></a><span class="fu">do.call</span>(rbind,<span class="fu">lapply</span>(MODELS, compare.DIC))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>       mean.deviance    p.eff      DIC     WAIC     time
-Global      77768.80 1704.376 79473.18 79386.32 162.1769
-k0          77527.11 1970.781 79497.90 79369.95 237.1200
-k1          77597.26 1849.824 79447.09 79341.24 302.4400</code></pre>
+Global      77768.71 1706.458 79475.17 79385.83 178.6276
+k0          77523.58 1969.264 79492.84 79362.55 218.6800
+k1          77592.00 1855.181 79447.18 79337.81 268.4500</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="do">## Maps with posterior median estimates of log-risks</span></span>
 <span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>carto <span class="ot">&lt;-</span> Carto_SpainMUN</span>
@@ -572,22 +572,22 @@ k1          77597.26 1849.824 79447.09 79341.24 302.4400</code></pre>
 <span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>      <span class="st">`</span><span class="at">k1-CMC</span><span class="st">`</span><span class="ot">=</span>iCAR.k1<span class="sc">$</span>summary.cor[<span class="st">"rho12"</span>,])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>            mean         sd 0.025quant  0.5quant 0.975quant
-Global 0.6467527 0.04735055  0.5486603 0.6480113  0.7317092
-k1-CMC 0.6396649 0.04325190  0.5511056 0.6412927  0.7208510</code></pre>
+Global 0.6457545 0.04615988  0.5517531 0.6457644  0.7342538
+k1-CMC 0.6459201 0.04171321  0.5614655 0.6470429  0.7241179</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="fu">rbind</span>(<span class="at">Global=</span>iCAR.Global<span class="sc">$</span>summary.cor[<span class="st">"rho13"</span>,],</span>
 <span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>      <span class="st">`</span><span class="at">k1-CMC</span><span class="st">`</span><span class="ot">=</span>iCAR.k1<span class="sc">$</span>summary.cor[<span class="st">"rho13"</span>,])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>            mean         sd 0.025quant  0.5quant 0.975quant
-Global 0.3477141 0.05890247  0.2346237 0.3474656  0.4644444
-k1-CMC 0.4179356 0.05106080  0.3153518 0.4186659  0.5154369</code></pre>
+Global 0.3468393 0.05991274  0.2318322 0.3460548  0.4672593
+k1-CMC 0.4194449 0.05073018  0.3179017 0.4199029  0.5163456</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="fu">rbind</span>(<span class="at">Global=</span>iCAR.Global<span class="sc">$</span>summary.cor[<span class="st">"rho23"</span>,],</span>
 <span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>      <span class="st">`</span><span class="at">k1-CMC</span><span class="st">`</span><span class="ot">=</span>iCAR.k1<span class="sc">$</span>summary.cor[<span class="st">"rho23"</span>,])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>            mean         sd 0.025quant 0.5quant 0.975quant
-Global 0.4620566 0.07009235  0.3191077 0.464104  0.5982320
-k1-CMC 0.4096088 0.06058028  0.2865981 0.410635  0.5261654</code></pre>
+<pre><code>            mean         sd 0.025quant  0.5quant 0.975quant
+Global 0.4629052 0.06878970  0.3242676 0.4641265  0.5965339
+k1-CMC 0.4074407 0.06015355  0.2847246 0.4087840  0.5216502</code></pre>
 </div>
 </div>
 <div class="cell">

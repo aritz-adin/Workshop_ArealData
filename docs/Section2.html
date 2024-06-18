@@ -364,7 +364,7 @@ STEP 2: Fitting global model with INLA (this may take a while...)</code></pre>
 <div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(iCAR.Global)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Time used:
-    Pre = 3.37, Running = 4.96, Post = 1.46, Total = 9.78 
+    Pre = 3.22, Running = 4.83, Post = 1.36, Total = 9.41 
 Fixed effects:
               mean    sd 0.025quant 0.5quant 0.975quant   mode kld
 (Intercept) -0.007 0.006     -0.019   -0.007      0.005 -0.007   0
@@ -398,7 +398,7 @@ STEP 2: Fitting global model with INLA (this may take a while...)</code></pre>
 <div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(BYM2.Global)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Time used:
-    Pre = 3.15, Running = 15.1, Post = 2.34, Total = 20.6 
+    Pre = 2.98, Running = 14.3, Post = 2.21, Total = 19.5 
 Fixed effects:
               mean    sd 0.025quant 0.5quant 0.975quant   mode kld
 (Intercept) -0.009 0.006     -0.021   -0.009      0.003 -0.009   0
@@ -433,8 +433,8 @@ Posterior summaries for the linear predictor and the fitted values are computed
 <span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a><span class="fu">do.call</span>(rbind,<span class="fu">lapply</span>(<span class="fu">list</span>(<span class="at">iCAR=</span>iCAR.Global, <span class="at">BYM2=</span>BYM2.Global), compare.DIC))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>     mean.deviance    p.eff      DIC     WAIC      time
-iCAR      27087.61 342.1213 27429.73 27430.14  9.779073
-BYM2      27049.38 376.9107 27426.30 27414.59 20.596519</code></pre>
+iCAR      27087.61 342.1213 27429.73 27430.14  9.412721
+BYM2      27049.39 376.9100 27426.30 27414.59 19.492267</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(iCAR.Global<span class="sc">$</span>summary.linear.predictor<span class="sc">$</span><span class="st">`</span><span class="at">0.5quant</span><span class="st">`</span>,</span>
 <span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>     BYM2.Global<span class="sc">$</span>summary.linear.predictor<span class="sc">$</span><span class="st">`</span><span class="at">0.5quant</span><span class="st">`</span>,</span>
@@ -486,7 +486,7 @@ STEP 3: Merging the results</code></pre>
 <div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>iCAR.k0<span class="sc">$</span>cpu.used</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> Running  Merging    Total 
-24.04738 20.36000 44.40738 </code></pre>
+23.24226 18.89000 42.13226 </code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>iCAR.k1 <span class="ot">&lt;-</span> <span class="fu">CAR_INLA</span>(<span class="at">carto=</span>Carto_SpainMUN, <span class="at">ID.area=</span><span class="st">"ID"</span>, <span class="at">O=</span><span class="st">"obs"</span>, <span class="at">E=</span><span class="st">"exp"</span>,</span>
 <span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>                    <span class="at">model=</span><span class="st">"partition"</span>, <span class="at">k=</span><span class="dv">1</span>, <span class="at">ID.group=</span><span class="st">"region"</span>,</span>
@@ -514,7 +514,7 @@ STEP 3: Merging the results</code></pre>
 <div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>iCAR.k1<span class="sc">$</span>cpu.used</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> Running  Merging    Total 
-25.15934 25.67000 50.82934 </code></pre>
+23.40793 23.95000 47.35793 </code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a>iCAR.k2 <span class="ot">&lt;-</span> <span class="fu">CAR_INLA</span>(<span class="at">carto=</span>Carto_SpainMUN, <span class="at">ID.area=</span><span class="st">"ID"</span>, <span class="at">O=</span><span class="st">"obs"</span>, <span class="at">E=</span><span class="st">"exp"</span>,</span>
 <span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>                    <span class="at">model=</span><span class="st">"partition"</span>, <span class="at">k=</span><span class="dv">2</span>, <span class="at">ID.group=</span><span class="st">"region"</span>,</span>
@@ -542,7 +542,7 @@ STEP 3: Merging the results</code></pre>
 <div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>iCAR.k2<span class="sc">$</span>cpu.used</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> Running  Merging    Total 
-25.95786 26.19000 52.14786 </code></pre>
+24.77958 24.33000 49.10958 </code></pre>
 </div>
 </div>
 <p>Internally, the <code>divide_carto()</code> function is called to compute the overlapping set of regions <span class="math inline">\(\{D_1,\ldots,D_{15}\}\)</span> according to the grouping variable <code>ID.group="region"</code>. The neighbourhood order to add polygons at the border of the spatial subdomains is controlled by the <code>k</code> argument.</p>
@@ -574,10 +574,10 @@ STEP 3: Merging the results</code></pre>
 <span id="cb46-8"><a href="#cb46-8" aria-hidden="true" tabindex="-1"></a><span class="fu">do.call</span>(rbind,<span class="fu">lapply</span>(MODELS, compare.DIC))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>       mean.deviance    p.eff      DIC     WAIC      time
-Global      27087.61 342.1213 27429.73 27430.14  9.779073
-k0          27101.43 344.7464 27446.18 27443.85 44.407377
-k1          27098.38 333.5373 27431.92 27433.56 50.829343
-k2          27132.04 307.2688 27439.31 27444.14 52.147860</code></pre>
+Global      27087.61 342.1213 27429.73 27430.14  9.412721
+k0          27102.20 344.5727 27446.77 27446.50 42.132259
+k1          27099.13 333.7563 27432.89 27432.62 47.357933
+k2          27130.51 307.4358 27437.95 27441.79 49.109580</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="do">## Maps with posterior median estimates of log-risks</span></span>
 <span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>Carto_SpainMUN<span class="sc">$</span>Global <span class="ot">&lt;-</span> iCAR.Global<span class="sc">$</span>summary.linear.predictor<span class="sc">$</span><span class="st">`</span><span class="at">0.5quant</span><span class="st">`</span></span>
@@ -684,11 +684,11 @@ Projected CRS: ETRS89 / UTM zone 30N
 5 01006                                 Arminon 10559721 [m^2] 17847.35 [m]
 6 01008 Arrazua-Ubarrundia (San Martin de Ania) 57502811 [m^2] 64968.81 [m]
       region    Global        k0        k1        k2 disease obs        exp
-1 Pais Vasco 0.6978446 0.6703088 0.7527308 0.7508028       1   3  6.6147794
-2 Pais Vasco 0.8803894 0.8694078 0.8576663 0.8654468       1  41 42.6337564
-3 Pais Vasco 0.8397482 0.8311718 0.8486363 0.8489246       1   4  7.4307781
-4 Pais Vasco 0.7516241 0.7511988 0.7720012 0.7331037       1   6  6.3549654
-5 Pais Vasco 0.6473510 0.6001159 0.6230463 0.6358718       1   0  0.9337634
+1 Pais Vasco 0.6978445 0.6703088 0.7527308 0.7508027       1   3  6.6147794
+2 Pais Vasco 0.8803894 0.8694077 0.8576663 0.8654467       1  41 42.6337564
+3 Pais Vasco 0.8397482 0.8311717 0.8486364 0.8489246       1   4  7.4307781
+4 Pais Vasco 0.7516240 0.7511987 0.7720012 0.7331036       1   6  6.3549654
+5 Pais Vasco 0.6473510 0.6001158 0.6230463 0.6358717       1   0  0.9337634
 6 Pais Vasco 0.7165259 0.7041837 0.7359355 0.7344448       1   2  3.9404795
         SMR        X1        X2                       geometry
 1 0.4535299 1.3051895 0.7755112 MULTIPOLYGON (((538259 4737...
@@ -739,14 +739,14 @@ STEP 3: Merging the results</code></pre>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb60"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a>iCAR.Global<span class="sc">$</span>summary.fixed</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>                    mean          sd   0.025quant    0.5quant  0.975quant
-(Intercept) -0.143431120 0.006025473 -0.155278872 -0.14341961 -0.13164882
-X1           0.021959574 0.009970845  0.002396737  0.02196339  0.04150069
-X2           0.001719766 0.010214449 -0.018316430  0.00172206  0.02174290
+<pre><code>                    mean          sd   0.025quant     0.5quant  0.975quant
+(Intercept) -0.143431121 0.006025473 -0.155278873 -0.143419614 -0.13164882
+X1           0.021959574 0.009970845  0.002396736  0.021963389  0.04150069
+X2           0.001719766 0.010214449 -0.018316430  0.001722059  0.02174290
                     mode          kld
-(Intercept) -0.143419533 1.017661e-09
-X1           0.021963409 8.770457e-11
-X2           0.001722071 6.288784e-11</code></pre>
+(Intercept) -0.143419534 1.017685e-09
+X1           0.021963408 8.770430e-11
+X2           0.001722071 6.288783e-11</code></pre>
 </div>
 </div>
 <p>In partition models, local estimates of the fixed effects coefficients are obtained in each province:</p>
@@ -755,16 +755,16 @@ X2           0.001722071 6.288784e-11</code></pre>
 <span id="cb62-2"><a href="#cb62-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(iCAR.k1<span class="sc">$</span>summary.fixed.partition[x1,<span class="dv">1</span><span class="sc">:</span><span class="dv">6</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>              mean         sd    0.025quant     0.5quant 0.975quant
-X1.01  0.035030880 0.03127741 -0.0265000455  0.035098908 0.09617459
-X1.02  0.062384460 0.03188713 -0.0001847692  0.062397567 0.12487918
-X1.03 -0.147491362 0.08699741 -0.3208914254 -0.146539361 0.02048612
-X1.04 -0.039189396 0.07361260 -0.1841407039 -0.039029497 0.10483569
-X1.05  0.010311903 0.02926385 -0.0471797741  0.010348424 0.06759555
+X1.01  0.035030880 0.03127741 -0.0265000454  0.035098908 0.09617459
+X1.02  0.062384460 0.03188713 -0.0001847686  0.062397567 0.12487918
+X1.03 -0.147491378 0.08699741 -0.3208914459 -0.146539378 0.02048611
+X1.04 -0.039189396 0.07361260 -0.1841407053 -0.039029497 0.10483569
+X1.05  0.010311904 0.02926385 -0.0471797741  0.010348424 0.06759555
 X1.06 -0.001755338 0.01857518 -0.0381982585 -0.001749027 0.03465168
               mode
 X1.01  0.035099245
 X1.02  0.062397663
-X1.03 -0.146537606
+X1.03 -0.146537623
 X1.04 -0.039033871
 X1.05  0.010348563
 X1.06 -0.001748989</code></pre>
@@ -774,9 +774,9 @@ X1.06 -0.001748989</code></pre>
 <div class="cell-output cell-output-stdout">
 <pre><code>              mean         sd  0.025quant     0.5quant  0.975quant         mode
 X2.01  0.007483663 0.03192414 -0.05517454  0.007502554 0.070034332  0.007502651
-X2.02 -0.063209201 0.03579666 -0.13345289 -0.063193311 0.006943974 -0.063193248
-X2.03  0.063872631 0.07846802 -0.09169413  0.064418356 0.216323437  0.064416081
-X2.04 -0.081429751 0.08111565 -0.24071884 -0.081386609 0.077617643 -0.081385473
+X2.02 -0.063209201 0.03579666 -0.13345289 -0.063193310 0.006943975 -0.063193248
+X2.03  0.063872623 0.07846803 -0.09169415  0.064418347 0.216323433  0.064416073
+X2.04 -0.081429751 0.08111565 -0.24071884 -0.081386609 0.077617644 -0.081385473
 X2.05 -0.006772546 0.02773751 -0.06123464 -0.006748671 0.047553713 -0.006748531
 X2.06  0.007999922 0.01719930 -0.02572534  0.007999391 0.041728210  0.007999390</code></pre>
 </div>
@@ -808,15 +808,15 @@ X2.06  0.007999922 0.01719930 -0.02572534  0.007999391 0.041728210  0.007999390<
 <span id="cb67-2"><a href="#cb67-2" aria-hidden="true" tabindex="-1"></a>      <span class="st">`</span><span class="at">k1-CMC</span><span class="st">`</span><span class="ot">=</span>iCAR.k1<span class="sc">$</span>summary.fixed[<span class="st">"X1"</span>,<span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>             mean          sd   0.025quant   0.5quant 0.975quant
-Global 0.02195957 0.009970845 0.0023967366 0.02196339 0.04150069
-k1-CMC 0.01907377 0.009416197 0.0008899967 0.01900037 0.03755495</code></pre>
+Global 0.02195957 0.009970845 0.0023967360 0.02196339 0.04150069
+k1-CMC 0.01895993 0.009499540 0.0005619544 0.01889223 0.03786775</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb69"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb69-1"><a href="#cb69-1" aria-hidden="true" tabindex="-1"></a><span class="fu">rbind</span>(<span class="at">Global=</span>iCAR.Global<span class="sc">$</span>summary.fixed[<span class="st">"X2"</span>,<span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>],</span>
 <span id="cb69-2"><a href="#cb69-2" aria-hidden="true" tabindex="-1"></a>      <span class="st">`</span><span class="at">k1-CMC</span><span class="st">`</span><span class="ot">=</span>iCAR.k1<span class="sc">$</span>summary.fixed[<span class="st">"X2"</span>,<span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>               mean          sd  0.025quant    0.5quant 0.975quant
-Global  0.001719766 0.010214449 -0.01831643  0.00172206 0.02174290
-k1-CMC -0.005786529 0.009814363 -0.02515914 -0.00583585 0.01349537</code></pre>
+<pre><code>               mean          sd  0.025quant     0.5quant 0.975quant
+Global  0.001719766 0.010214449 -0.01831643  0.001722059 0.02174290
+k1-CMC -0.005670648 0.009719127 -0.02500830 -0.005591977 0.01314716</code></pre>
 </div>
 </div>
 <div class="cell">

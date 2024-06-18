@@ -417,12 +417,12 @@ Projected CRS: ETRS89 / UTM zone 30N
 <div class="cell">
 <div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>Carto_SpainMUN<span class="sc">$</span>ID.prov <span class="ot">&lt;-</span> <span class="fu">substr</span>(Carto_SpainMUN<span class="sc">$</span>ID,<span class="dv">1</span>,<span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>In the code below, we show how to fit the <em>disjoint</em> and <em>1st-order neigbourhood</em> model with Type I space-time interaction random effect using 4 local clusters (in parallel):</p>
+<p>In the code below, we show how to fit the <em>disjoint</em> and <em>1st-order neigbourhood</em> model with Type II space-time interaction random effect using 4 local clusters (in parallel):</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>Model.k0 <span class="ot">&lt;-</span> <span class="fu">STCAR_INLA</span>(<span class="at">carto=</span>Carto_SpainMUN, <span class="at">data=</span>Data_LungCancer,</span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>                       <span class="at">ID.area=</span><span class="st">"ID"</span>, <span class="at">ID.year=</span><span class="st">"year"</span>, <span class="at">O=</span><span class="st">"obs"</span>, <span class="at">E=</span><span class="st">"exp"</span>,</span>
 <span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>                       <span class="at">model=</span><span class="st">"partition"</span>, <span class="at">k=</span><span class="dv">0</span>, <span class="at">ID.group=</span><span class="st">"ID.prov"</span>,</span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>                       <span class="at">spatial=</span><span class="st">"intrinsic"</span>, <span class="at">temporal=</span><span class="st">"rw1"</span>, <span class="at">interaction=</span><span class="st">"TypeI"</span>,</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>                       <span class="at">spatial=</span><span class="st">"intrinsic"</span>, <span class="at">temporal=</span><span class="st">"rw1"</span>, <span class="at">interaction=</span><span class="st">"TypeII"</span>,</span>
 <span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>                       <span class="at">plan=</span><span class="st">"cluster"</span>, <span class="at">workers=</span><span class="fu">rep</span>(<span class="st">"localhost"</span>,<span class="dv">4</span>),</span>
 <span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>                       <span class="at">strategy=</span><span class="st">"gaussian"</span>)</span>
 <span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a><span class="fu">gc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -431,7 +431,7 @@ Projected CRS: ETRS89 / UTM zone 30N
 <div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>Model.k1 <span class="ot">&lt;-</span> <span class="fu">STCAR_INLA</span>(<span class="at">carto=</span>Carto_SpainMUN, <span class="at">data=</span>Data_LungCancer,</span>
 <span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>                       <span class="at">ID.area=</span><span class="st">"ID"</span>, <span class="at">ID.year=</span><span class="st">"year"</span>, <span class="at">O=</span><span class="st">"obs"</span>, <span class="at">E=</span><span class="st">"exp"</span>,</span>
 <span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>                       <span class="at">model=</span><span class="st">"partition"</span>, <span class="at">k=</span><span class="dv">1</span>, <span class="at">ID.group=</span><span class="st">"ID.prov"</span>,</span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>                       <span class="at">spatial=</span><span class="st">"intrinsic"</span>, <span class="at">temporal=</span><span class="st">"rw1"</span>, <span class="at">interaction=</span><span class="st">"TypeI"</span>,</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>                       <span class="at">spatial=</span><span class="st">"intrinsic"</span>, <span class="at">temporal=</span><span class="st">"rw1"</span>, <span class="at">interaction=</span><span class="st">"TypeII"</span>,</span>
 <span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>                       <span class="at">plan=</span><span class="st">"cluster"</span>, <span class="at">workers=</span><span class="fu">rep</span>(<span class="st">"localhost"</span>,<span class="dv">4</span>),</span>
 <span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>                       <span class="at">strategy=</span><span class="st">"gaussian"</span>)</span>
 <span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a><span class="fu">gc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -441,12 +441,12 @@ Projected CRS: ETRS89 / UTM zone 30N
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>Model.k0<span class="sc">$</span>cpu.used</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Running Merging   Total 
- 195.64  372.75  568.39 </code></pre>
+2675.35  395.92 3071.27 </code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>Model.k1<span class="sc">$</span>cpu.used</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Running Merging   Total 
- 234.77  799.92 1034.69 </code></pre>
+5743.98 1504.50 7248.48 </code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="do">## Model comparison</span></span>
 <span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>compare.DIC <span class="ot">&lt;-</span> <span class="cf">function</span>(x){</span>
@@ -458,8 +458,8 @@ Projected CRS: ETRS89 / UTM zone 30N
 <span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a><span class="fu">do.call</span>(rbind,<span class="fu">lapply</span>(MODELS, compare.DIC))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>    mean.deviance   p.eff      DIC     WAIC
-k=0      335758.1 3355.89 339114.0 339059.6
-k=1      335907.8 3116.61 339024.5 338994.7</code></pre>
+k=0      336119.6 2904.51 339024.1 339037.7
+k=1      336237.4 2689.43 338926.9 338945.3</code></pre>
 </div>
 </div>
 <p><em>Computations are made in personal computer with a 3.41 GHz Intel Core i5-7500 processor and 32GB RAM using R-INLA stable version INLA_24.05.10</em></p>
@@ -496,7 +496,7 @@ k=1      335907.8 3116.61 339024.5 338994.7</code></pre>
 <span id="cb23-26"><a href="#cb23-26" aria-hidden="true" tabindex="-1"></a>            <span class="at">legend.outside=</span>T, <span class="at">legend.outside.position=</span><span class="st">"right"</span>, <span class="at">legend.frame=</span>F,</span>
 <span id="cb23-27"><a href="#cb23-27" aria-hidden="true" tabindex="-1"></a>            <span class="at">legend.outside.size=</span><span class="fl">0.2</span>, <span class="at">outer.margins=</span><span class="fu">c</span>(<span class="fl">0.02</span>,<span class="fl">0.01</span>,<span class="fl">0.02</span>,<span class="fl">0.01</span>),</span>
 <span id="cb23-28"><a href="#cb23-28" aria-hidden="true" tabindex="-1"></a>            <span class="at">panel.labels=</span><span class="fu">as.character</span>(<span class="fu">round</span>(<span class="fu">seq</span>(t.from,t.to,<span class="at">length.out=</span><span class="dv">9</span>)))) <span class="sc">+</span></span>
-<span id="cb23-29"><a href="#cb23-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_facets</span>(<span class="at">nrow=</span><span class="dv">3</span>, <span class="at">ncol=</span><span class="dv">4</span>)</span>
+<span id="cb23-29"><a href="#cb23-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_facets</span>(<span class="at">nrow=</span><span class="dv">3</span>, <span class="at">ncol=</span><span class="dv">3</span>)</span>
 <span id="cb23-30"><a href="#cb23-30" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb23-31"><a href="#cb23-31" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(Map.risks)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">

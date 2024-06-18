@@ -159,27 +159,27 @@ For our analysis, we propose to divide the data into the $D=47$ provinces of con
 Carto_SpainMUN$ID.prov <- substr(Carto_SpainMUN$ID,1,2)
 ```
 
-In the code below, we show how to fit the *disjoint* and *1st-order neigbourhood* model with Type I space-time interaction random effect using 4 local clusters (in parallel):
+In the code below, we show how to fit the *disjoint* and *1st-order neigbourhood* model with Type II space-time interaction random effect using 4 local clusters (in parallel):
 
 ```{r, echo=TRUE, results='hide'}
 Model.k0 <- STCAR_INLA(carto=Carto_SpainMUN, data=Data_LungCancer,
                        ID.area="ID", ID.year="year", O="obs", E="exp",
                        model="partition", k=0, ID.group="ID.prov",
-                       spatial="intrinsic", temporal="rw1", interaction="TypeI",
+                       spatial="intrinsic", temporal="rw1", interaction="TypeII",
+                       plan="cluster", workers=rep("localhost",4),
+                       strategy="gaussian")
+gc()
+```
+```{r, echo=TRUE, results='hide'}
+Model.k1 <- STCAR_INLA(carto=Carto_SpainMUN, data=Data_LungCancer,
+                       ID.area="ID", ID.year="year", O="obs", E="exp",
+                       model="partition", k=1, ID.group="ID.prov",
+                       spatial="intrinsic", temporal="rw1", interaction="TypeII",
                        plan="cluster", workers=rep("localhost",4),
                        strategy="gaussian")
 gc()
 ```
 
-```{r, echo=TRUE, results='hide'}
-Model.k1 <- STCAR_INLA(carto=Carto_SpainMUN, data=Data_LungCancer,
-                       ID.area="ID", ID.year="year", O="obs", E="exp",
-                       model="partition", k=1, ID.group="ID.prov",
-                       spatial="intrinsic", temporal="rw1", interaction="TypeI",
-                       plan="cluster", workers=rep("localhost",4),
-                       strategy="gaussian")
-gc()
-```
 ```{r}
 ## Computational time
 Model.k0$cpu.used
@@ -229,7 +229,7 @@ Map.risks <- tm_shape(carto) +
             legend.outside=T, legend.outside.position="right", legend.frame=F,
             legend.outside.size=0.2, outer.margins=c(0.02,0.01,0.02,0.01),
             panel.labels=as.character(round(seq(t.from,t.to,length.out=9)))) +
-  tm_facets(nrow=3, ncol=4)
+  tm_facets(nrow=3, ncol=3)
 
 print(Map.risks)
 ```
@@ -270,79 +270,79 @@ plot.region <- function(model, ID.area, area.name, color, line.color="red",
                         plot.abline=TRUE, plot.SMR=TRUE, xlab=NULL, ylab=NULL,
                         xlim=NULL, ylim=NULL, t.from=NULL, t.to=NULL){
   
-	n.region <- length(ID.area)
-	n.time <- length(unique(model$.args$data$Year))
-	  
-	datos <- data.frame(risk=exp(model$summary.linear.predictor$`0.5quant`),
-	                    q1=exp(model$summary.linear.predictor$`0.025quant`),
-	                    q2=exp(model$summary.linear.predictor$`0.975quant`),
-	                    prob=cut(1-model$summary.linear.predictor$`0cdf`,
-	                             include.lowest=TRUE, right=FALSE,
-	                             breaks=c(0,0.1,0.2,0.8,0.9,1),
-	                             labels=c("[0.0,0.1)","[0.1,0.2)","[0.2,0.8)","[0.8,0.9)","[0.9,1.0]")),
-	                    ID.area=model$.args$data$Area,
-	                    ID.year=model$.args$data$Year,
-	                    O=model$.args$data$O,
-	                    E=model$.args$data$E,
-	                    SMR=model$.args$data$O/model$.args$data$E)
-
-	datos <- datos[datos$ID.area %in% ID.area,]
-	
-	if(is.null(ylim)) ylim=range(datos$SMR)
-	if(is.null(xlim)) xlim=c(1,T)
-	if(is.null(t.from)) t.from <- 1
-	if(is.null(t.to)) t.to <- T
-	
-	kk <- 1
-	for(k in ID.area) {
-	  
-	  aux <- datos[datos$ID.area==k,]
-
-  	par(mar=c(5,5,4,2))
-		plot(x=xlim, y=ylim, type="n", xlab=xlab, ylab=ylab, xaxt="n")
-		
-		for(i in xlim[1]:xlim[2]) {
-			X.Vec <- c(i-0.5, i+0.5, i+0.5, i-0.5, i-0.5)
-			Y.Vec <- c(-1,-1,100,100,-1)
-			level <- match(aux$prob[i], levels(aux$prob))
-			polygon(X.Vec, Y.Vec, col=color[level], border=NA)
-		}
-
-		lines(1:T, aux$q1, col="grey")
-		lines(1:T, aux$q2, col="grey")
-
-		X.Vec <- c(1,T,T:1, 1)
-		Y.inf <- c(-1,-1,rev(aux$q1),-1)
-		polygon(X.Vec, Y.inf, col="white", border=NA)
-
-		X.Vec <- c(1:T,T,1,1)
-		Y.sup <- c(aux$q2,100,100,aux$q2[1])
-		polygon(X.Vec, Y.sup, col="white", border=NA)
-
-		polygon(c(0.5,1,1,0.5,0.5), c(-1,-1,100,100,-1), col="white", border=NA)
-		polygon(c(T,T+0.5,T+0.5,T,T), c(-1,-1,100,100,-1), col="white", border=NA)
-
-		graphics::box()
-		if(xlim[2]>8){
-		  axis(1, at=round(seq(xlim[1],xlim[2],length.out=5)), labels=as.character(round(seq(xlim[1]+t.from-1,xlim[2]+t.from-1,length.out=5))), las=0)
-		}else{
-		  axis(1, at=seq(xlim[1],xlim[2]), labels=as.character(seq(xlim[1]+t.from-1,xlim[2]+t.from-1)), las=0)
-		}
-		lines(aux$risk)
-		title(area.name[kk])
-
-		if(plot.SMR) lines(1:T,aux$SMR,col=line.color,lwd=2)
-		
-		if(plot.abline) abline(h=1, lty=2)
-		
-		kk <- kk+1
-	}
+  n.region <- length(ID.area)
+  T <- length(unique(model$.args$data$Year))
+  
+  datos <- data.frame(risk=exp(model$summary.linear.predictor$`0.5quant`),
+                      q1=exp(model$summary.linear.predictor$`0.025quant`),
+                      q2=exp(model$summary.linear.predictor$`0.975quant`),
+                      prob=cut(1-model$summary.linear.predictor$`0cdf`,
+                               include.lowest=TRUE, right=FALSE,
+                               breaks=c(0,0.1,0.2,0.8,0.9,1),
+                               labels=c("[0.0,0.1)","[0.1,0.2)","[0.2,0.8)","[0.8,0.9)","[0.9,1.0]")),
+                      ID.area=model$.args$data$Area,
+                      ID.year=model$.args$data$Year,
+                      O=model$.args$data$O,
+                      E=model$.args$data$E,
+                      SMR=model$.args$data$O/model$.args$data$E)
+  
+  datos <- datos[datos$ID.area %in% ID.area,]
+  
+  if(is.null(ylim)) ylim=range(datos$SMR)
+  if(is.null(xlim)) xlim=c(1,T)
+  if(is.null(t.from)) t.from <- 1
+  if(is.null(t.to)) t.to <- T
+  
+  kk <- 1
+  for(k in ID.area) {
+    
+    aux <- datos[datos$ID.area==k,]
+    
+    par(mar=c(5,5,4,2))
+    plot(x=xlim, y=ylim, type="n", xlab=xlab, ylab=ylab, xaxt="n")
+    
+    for(i in xlim[1]:xlim[2]) {
+      X.Vec <- c(i-0.5, i+0.5, i+0.5, i-0.5, i-0.5)
+      Y.Vec <- c(-1,-1,100,100,-1)
+      level <- match(aux$prob[i], levels(aux$prob))
+      polygon(X.Vec, Y.Vec, col=color[level], border=NA)
+    }
+    
+    lines(1:T, aux$q1, col="grey")
+    lines(1:T, aux$q2, col="grey")
+    
+    X.Vec <- c(1,T,T:1, 1)
+    Y.inf <- c(-1,-1,rev(aux$q1),-1)
+    polygon(X.Vec, Y.inf, col="white", border=NA)
+    
+    X.Vec <- c(1:T,T,1,1)
+    Y.sup <- c(aux$q2,100,100,aux$q2[1])
+    polygon(X.Vec, Y.sup, col="white", border=NA)
+    
+    polygon(c(0.5,1,1,0.5,0.5), c(-1,-1,100,100,-1), col="white", border=NA)
+    polygon(c(T,T+0.5,T+0.5,T,T), c(-1,-1,100,100,-1), col="white", border=NA)
+    
+    graphics::box()
+    if(xlim[2]>8){
+      axis(1, at=round(seq(xlim[1],xlim[2],length.out=5)), labels=as.character(round(seq(xlim[1]+t.from-1,xlim[2]+t.from-1,length.out=5))), las=0)
+    }else{
+      axis(1, at=seq(xlim[1],xlim[2]), labels=as.character(seq(xlim[1]+t.from-1,xlim[2]+t.from-1)), las=0)
+    }
+    lines(aux$risk)
+    title(area.name[kk])
+    
+    if(plot.SMR) lines(1:T,aux$SMR,col=line.color,lwd=2)
+    
+    if(plot.abline) abline(h=1, lty=2)
+    
+    kk <- kk+1
+  }
 }
 
-par(mfrow=c(1,3), pty="s")
+par(mfrow=c(2,2), pty="m")
 plot.region(model=Model,
-            ID.area=c("31201","46250","45168"),
-            area.name=c("Pamplona","Valencia","Toledo"),
+            ID.area=c("09059","31201","45168","46250"),
+            area.name=c("Burgos","Pamplona","Toledo","Valencia"),
             color=brewer.pal(6,"Blues")[-1], xlab="Year", ylab="",
             xlim=NULL, ylim=c(0.5,1.5), t.from=1991, t.to=2015)
 ```
