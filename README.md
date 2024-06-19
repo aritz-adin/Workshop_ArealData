@@ -35,8 +35,7 @@ The Workshop will consist of a
   - Lecturer: [Jorge Mateu](https://www3.uji.es/~mateu/), University
     Jaume I of Castellon, Castellon (Spain).
 
-[Access to full
-programme](https://www2.unavarra.es/gesadj/inst_inamat/archivos-pdf/Program_STWorkshop_Pamplona.pdf)
+[Access to full programme](./Program_STWorkshop_Pamplona.pdf)
 
 ## Workshop on Areal data
 
